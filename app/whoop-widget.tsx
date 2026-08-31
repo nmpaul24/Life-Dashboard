@@ -32,7 +32,7 @@ export default async function WhoopWidget() {
       }
     >
       {connected ? (
-        <div className="flex justify-around gap-2 py-2">
+        <div className="grid grid-cols-3 gap-2 py-2 place-items-center">
           <Ring
             percent={sleep ? sleep.performancePercent : 0}
             value={sleep ? `${sleep.performancePercent}%` : "—"}
