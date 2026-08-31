@@ -8,40 +8,35 @@ import {
 export default async function WhoopWidget() {
   const connected = await hasWhoopTokens();
 
-  if (!connected) {
-    return (
-      <section className="flex flex-col gap-2">
-        <h2 className="text-lg font-medium">WHOOP</h2>
-        <a
-          href="/api/auth/whoop"
-          className="inline-block bg-black text-white rounded px-4 py-2 w-fit text-sm"
-        >
-          Connect WHOOP
-        </a>
-      </section>
-    );
-  }
-
-  const [recovery, sleep, strain] = await Promise.all([
-    getWhoopRecovery(),
-    getWhoopSleep(),
-    getWhoopStrain(),
-  ]);
+  const [recovery, sleep, strain] = connected
+    ? await Promise.all([getWhoopRecovery(), getWhoopSleep(), getWhoopStrain()])
+    : [null, null, null];
 
   return (
     <section className="flex flex-col gap-2">
       <h2 className="text-lg font-medium">WHOOP</h2>
-      <div className="flex flex-wrap gap-3">
-        <Stat
-          label="Recovery"
-          value={recovery ? `${recovery.recoveryScore}%` : "—"}
-        />
-        <Stat
-          label="Sleep"
-          value={sleep ? `${sleep.performancePercent}%` : "—"}
-        />
-        <Stat label="Strain" value={strain ? strain.strain.toFixed(1) : "—"} />
-      </div>
+      {connected && (
+        <div className="flex flex-wrap gap-3">
+          <Stat
+            label="Recovery"
+            value={recovery ? `${recovery.recoveryScore}%` : "—"}
+          />
+          <Stat
+            label="Sleep"
+            value={sleep ? `${sleep.performancePercent}%` : "—"}
+          />
+          <Stat
+            label="Strain"
+            value={strain ? strain.strain.toFixed(1) : "—"}
+          />
+        </div>
+      )}
+      <a
+        href="/api/auth/whoop"
+        className="inline-block bg-black text-white rounded px-4 py-2 w-fit text-sm"
+      >
+        {connected ? "Reconnect WHOOP" : "Connect WHOOP"}
+      </a>
     </section>
   );
 }
