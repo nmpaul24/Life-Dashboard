@@ -11,7 +11,7 @@ export default function WeatherWidget({
   daily: DailyForecast[] | null;
 }) {
   return (
-    <Card title="Weather" accentColor="bg-sky-400">
+    <Card title="Weather" accentColor="bg-sky-400" glowRgb="56,189,248">
       <div className="flex flex-col gap-3">
         {!weather && (
           <p className="text-sm text-white/40">Could not load weather.</p>
@@ -28,7 +28,7 @@ export default function WeatherWidget({
               />
             )}
             <div>
-              <p className="text-xl font-semibold text-white">
+              <p className="text-xl font-semibold text-white drop-shadow-[0_0_16px_rgba(56,189,248,0.4)]">
                 {weather.tempF}°F
               </p>
               <p className="text-xs text-white/50 capitalize">

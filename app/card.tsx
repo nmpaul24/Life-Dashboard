@@ -3,19 +3,29 @@ import type { ReactNode } from "react";
 export function Card({
   title,
   accentColor = "bg-white/30",
+  glowRgb = "255,255,255",
   action,
   children,
 }: {
   title: string;
   accentColor?: string;
+  glowRgb?: string;
   action?: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <div className="min-w-0 rounded-2xl bg-white/[0.03] border border-white/[0.06] p-5 flex flex-col gap-4">
+    <div
+      className="min-w-0 rounded-2xl border border-white/[0.08] p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
+      style={{
+        background: `radial-gradient(120% 100% at 0% 0%, rgba(${glowRgb},0.16) 0%, rgba(255,255,255,0.025) 45%, rgba(255,255,255,0.02) 100%)`,
+      }}
+    >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className={`h-2 w-2 rounded-full ${accentColor}`} />
+          <span
+            className={`h-2 w-2 rounded-full ${accentColor}`}
+            style={{ boxShadow: `0 0 10px 2px rgba(${glowRgb},0.7)` }}
+          />
           <h2 className="text-sm font-medium text-white/70 tracking-wide">
             {title}
           </h2>

@@ -98,6 +98,7 @@ export default function CalendarWidget({
     <Card
       title="Calendar"
       accentColor="bg-fuchsia-400"
+      glowRgb="232,121,249"
       action={
         <button
           onClick={() => setAddOpen(true)}

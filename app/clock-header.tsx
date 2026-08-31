@@ -45,9 +45,15 @@ export default function ClockHeader({
   );
 
   return (
-    <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] px-5 py-4 flex flex-wrap items-center justify-between gap-4">
+    <div
+      className="rounded-2xl border border-white/[0.08] px-5 py-4 flex flex-wrap items-center justify-between gap-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
+      style={{
+        background:
+          "radial-gradient(120% 140% at 0% 0%, rgba(56,189,248,0.10) 0%, rgba(255,255,255,0.03) 40%, rgba(255,255,255,0.02) 100%), radial-gradient(100% 140% at 100% 100%, rgba(167,139,250,0.10) 0%, transparent 50%)",
+      }}
+    >
       <div>
-        <p className="text-3xl font-semibold text-white tracking-tight">
+        <p className="text-3xl font-semibold text-white tracking-tight drop-shadow-[0_0_18px_rgba(255,255,255,0.15)]">
           {timeLabel}
         </p>
         <p className="text-sm text-white/40 uppercase tracking-wide mt-1">
