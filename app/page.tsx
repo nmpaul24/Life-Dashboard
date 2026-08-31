@@ -3,6 +3,7 @@ import { getWeather } from "@/lib/weather";
 import GoalsBoard, { type Goal } from "./goals-board";
 import WeatherWidget from "./weather-widget";
 import WhoopWidget from "./whoop-widget";
+import PlaidWidget from "./plaid-widget";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function Home() {
       <h1 className="text-2xl font-semibold">Life Dashboard</h1>
       <WeatherWidget weather={weather} />
       <WhoopWidget />
+      <PlaidWidget />
       <GoalsBoard initialGoals={goals} />
     </main>
   );

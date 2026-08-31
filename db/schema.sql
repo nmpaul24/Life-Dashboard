@@ -14,3 +14,11 @@ CREATE TABLE IF NOT EXISTS whoop_tokens (
   expires_at TIMESTAMPTZ NOT NULL,
   CONSTRAINT whoop_tokens_singleton CHECK (id)
 );
+
+-- Single-row table holding this app's one Plaid Item (linked account, e.g. Fidelity).
+CREATE TABLE IF NOT EXISTS plaid_items (
+  id BOOLEAN PRIMARY KEY DEFAULT TRUE,
+  access_token TEXT NOT NULL,
+  item_id TEXT NOT NULL,
+  CONSTRAINT plaid_items_singleton CHECK (id)
+);
