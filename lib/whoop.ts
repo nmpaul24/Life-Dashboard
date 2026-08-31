@@ -3,6 +3,7 @@ import { sql } from "./db";
 export const WHOOP_AUTHORIZE_URL = "https://api.prod.whoop.com/oauth/oauth2/auth";
 export const WHOOP_TOKEN_URL = "https://api.prod.whoop.com/oauth/oauth2/token";
 export const WHOOP_SCOPES = "read:recovery read:cycles read:sleep read:profile";
+const WHOOP_API_BASE = "https://api.prod.whoop.com/developer/v2";
 
 type WhoopTokenResponse = {
   access_token: string;
@@ -99,4 +100,101 @@ export async function getWhoopAccessToken(): Promise<string | null> {
   }
 
   return refreshWhoopToken(tokens.refreshToken);
+}
+
+type WhoopCollection<T> = { records: T[] };
+
+async function whoopGet<T>(path: string): Promise<T | null> {
+  const accessToken = await getWhoopAccessToken();
+  if (!accessToken) return null;
+
+  const res = await fetch(`${WHOOP_API_BASE}${path}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    console.error(`whoopGet ${path}: WHOOP returned ${res.status}: ${body}`);
+    return null;
+  }
+
+  return res.json();
+}
+
+type RawRecovery = {
+  score_state: string;
+  score?: {
+    recovery_score: number;
+    resting_heart_rate: number;
+    hrv_rmssd_milli: number;
+  };
+};
+
+export type WhoopRecovery = {
+  recoveryScore: number;
+  restingHeartRate: number;
+  hrvMilli: number;
+};
+
+export async function getWhoopRecovery(): Promise<WhoopRecovery | null> {
+  const data = await whoopGet<WhoopCollection<RawRecovery>>("/recovery?limit=1");
+  const record = data?.records?.[0];
+  if (!record || record.score_state !== "SCORED" || !record.score) return null;
+
+  return {
+    recoveryScore: Math.round(record.score.recovery_score),
+    restingHeartRate: record.score.resting_heart_rate,
+    hrvMilli: Math.round(record.score.hrv_rmssd_milli),
+  };
+}
+
+type RawSleep = {
+  score_state: string;
+  score?: {
+    sleep_performance_percentage: number;
+    sleep_efficiency_percentage: number;
+  };
+};
+
+export type WhoopSleep = {
+  performancePercent: number;
+  efficiencyPercent: number;
+};
+
+export async function getWhoopSleep(): Promise<WhoopSleep | null> {
+  const data = await whoopGet<WhoopCollection<RawSleep>>("/activity/sleep?limit=1");
+  const record = data?.records?.[0];
+  if (!record || record.score_state !== "SCORED" || !record.score) return null;
+
+  return {
+    performancePercent: Math.round(record.score.sleep_performance_percentage),
+    efficiencyPercent: Math.round(record.score.sleep_efficiency_percentage),
+  };
+}
+
+type RawCycle = {
+  score_state: string;
+  score?: {
+    strain: number;
+    average_heart_rate: number;
+  };
+};
+
+export type WhoopStrain = {
+  strain: number;
+  averageHeartRate: number;
+};
+
+// The "Strain" number shown on WHOOP's home screen is the daily Cycle
+// strain (as opposed to per-workout strain).
+export async function getWhoopStrain(): Promise<WhoopStrain | null> {
+  const data = await whoopGet<WhoopCollection<RawCycle>>("/cycle?limit=1");
+  const record = data?.records?.[0];
+  if (!record || record.score_state !== "SCORED" || !record.score) return null;
+
+  return {
+    strain: Math.round(record.score.strain * 10) / 10,
+    averageHeartRate: record.score.average_heart_rate,
+  };
 }

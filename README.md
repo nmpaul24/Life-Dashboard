@@ -100,7 +100,10 @@ then `git remote add origin <repo-url>` before pushing.)
 5. Make sure the tables in `db/schema.sql` exist in your Neon database (step
    4.3) — Vercel doesn't create them for you.
 6. On the dashboard, click **Connect WHOOP** and authorize — this only needs
-   to be done once; the app stores and auto-refreshes the token.
+   to be done once; the app stores and auto-refreshes the token. Once
+   connected, it shows your latest Recovery %, Sleep performance %, and
+   Strain (the daily overall number WHOOP's home screen shows, i.e. Cycle
+   strain — not per-workout strain).
 
 ## Project structure
 
@@ -108,7 +111,7 @@ then `git remote add origin <repo-url>` before pushing.)
 app/
   page.tsx                       - dashboard page (fetches goals + weather server-side)
   weather-widget.tsx              - presentational weather card
-  whoop-widget.tsx                 - connect button / connected status
+  whoop-widget.tsx                 - connect button, or latest recovery/sleep/strain
   goals-board.tsx                  - client component: add/view/check off/delete goals
   privacy/page.tsx                 - minimal privacy policy (required by WHOOP's app form)
   api/goals/route.ts               - GET (list) / POST (create)
@@ -117,12 +120,10 @@ app/
   api/auth/whoop/callback/route.ts - exchanges the auth code for tokens, stores them
 lib/db.ts                         - Postgres client (Neon)
 lib/weather.ts                    - OpenWeatherMap fetch for Minneapolis, MN
-lib/whoop.ts                      - WHOOP token storage/refresh
+lib/whoop.ts                      - WHOOP token storage/refresh + recovery/sleep/strain fetches
 db/schema.sql                     - table definitions (goals, whoop_tokens)
 ```
 
 ## Out of scope for this pass
 
 No authentication (single-user), no calendar/email/Canvas integrations yet.
-WHOOP is connected but doesn't display data yet (recovery/sleep/strain
-display is the next step).
