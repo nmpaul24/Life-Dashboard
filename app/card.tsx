@@ -12,7 +12,7 @@ export function Card({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] p-5 flex flex-col gap-4">
+    <div className="min-w-0 rounded-2xl bg-white/[0.03] border border-white/[0.06] p-5 flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span className={`h-2 w-2 rounded-full ${accentColor}`} />

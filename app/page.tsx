@@ -21,13 +21,12 @@ export default async function Home() {
     <main className="mx-auto max-w-5xl w-full p-6 flex flex-col gap-6">
       <ClockHeader initialTime={new Date().toISOString()} />
 
-      <WeatherWidget
-        weather={weather}
-        hourly={forecast?.hourly ?? null}
-        daily={forecast?.daily ?? null}
-      />
-
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <WeatherWidget
+          weather={weather}
+          hourly={forecast?.hourly ?? null}
+          daily={forecast?.daily ?? null}
+        />
         <WhoopWidget />
         <PlaidWidget />
       </div>
