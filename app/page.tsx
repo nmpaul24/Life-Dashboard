@@ -28,14 +28,20 @@ export default async function Home() {
     <main className="w-full px-3 py-4 flex flex-col gap-4">
       <ClockHeader initialTime={nowIso} middle={<WhoopWidget />} />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <CalendarWidget initialEvents={events} today={nowIso} />
-        <WeatherWidget
-          weather={weather}
-          hourly={forecast?.hourly ?? null}
-          daily={forecast?.daily ?? null}
-        />
-        <GoalsBoard initialGoals={goals} />
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1 min-w-0">
+          <CalendarWidget initialEvents={events} today={nowIso} />
+        </div>
+        <div className="sm:w-72 shrink-0">
+          <WeatherWidget
+            weather={weather}
+            hourly={forecast?.hourly ?? null}
+            daily={forecast?.daily ?? null}
+          />
+        </div>
+        <div className="sm:w-80 shrink-0">
+          <GoalsBoard initialGoals={goals} />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-3">
