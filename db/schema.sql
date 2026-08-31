@@ -23,6 +23,9 @@ CREATE TABLE IF NOT EXISTS whoop_tokens (
 );
 
 -- Plaid Items (linked accounts, e.g. Fidelity, SoFi) — one row per connected institution.
+-- cached_accounts/cached_at hold the last successful balance fetch, since
+-- Plaid rate-limits the balance endpoint and this app checks it on every
+-- page load.
 CREATE TABLE IF NOT EXISTS plaid_items (
   id SERIAL PRIMARY KEY,
   item_id TEXT NOT NULL UNIQUE,
@@ -30,3 +33,6 @@ CREATE TABLE IF NOT EXISTS plaid_items (
   institution_name TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE plaid_items ADD COLUMN IF NOT EXISTS cached_accounts JSONB;
+ALTER TABLE plaid_items ADD COLUMN IF NOT EXISTS cached_at TIMESTAMPTZ;

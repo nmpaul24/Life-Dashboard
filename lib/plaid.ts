@@ -73,28 +73,55 @@ export async function hasPlaidItems(): Promise<boolean> {
   return rows.length > 0;
 }
 
+type RawAccount = {
+  name: string;
+  official_name: string | null;
+  balances: {
+    current: number | null;
+    available: number | null;
+    iso_currency_code: string | null;
+  };
+};
+
 type StoredItem = {
   itemId: string;
   accessToken: string;
   institutionName: string | null;
+  cachedAccounts: RawAccount[] | null;
+  cachedAt: Date | null;
 };
 
 async function loadAllItems(): Promise<StoredItem[]> {
   const rows = (await sql`
-    SELECT item_id, access_token, institution_name
+    SELECT item_id, access_token, institution_name, cached_accounts, cached_at
     FROM plaid_items
     ORDER BY created_at
   `) as unknown as {
     item_id: string;
     access_token: string;
     institution_name: string | null;
+    cached_accounts: RawAccount[] | string | null;
+    cached_at: string | null;
   }[];
 
   return rows.map((row) => ({
     itemId: row.item_id,
     accessToken: row.access_token,
     institutionName: row.institution_name,
+    cachedAccounts:
+      typeof row.cached_accounts === "string"
+        ? JSON.parse(row.cached_accounts)
+        : row.cached_accounts,
+    cachedAt: row.cached_at ? new Date(row.cached_at) : null,
   }));
+}
+
+async function cacheAccounts(itemId: string, accounts: RawAccount[]) {
+  await sql`
+    UPDATE plaid_items
+    SET cached_accounts = ${JSON.stringify(accounts)}::jsonb, cached_at = now()
+    WHERE item_id = ${itemId}
+  `;
 }
 
 export type PlaidAccountBalance = {
@@ -106,19 +133,35 @@ export type PlaidAccountBalance = {
   currencyCode: string | null;
 };
 
-type RawAccount = {
-  name: string;
-  official_name: string | null;
-  balances: {
-    current: number | null;
-    available: number | null;
-    iso_currency_code: string | null;
-  };
-};
+function toBalances(
+  item: StoredItem,
+  accounts: RawAccount[]
+): PlaidAccountBalance[] {
+  return accounts.map((account) => ({
+    institutionName: item.institutionName,
+    accountName: account.name,
+    officialName: account.official_name,
+    currentBalance: account.balances.current,
+    availableBalance: account.balances.available,
+    currencyCode: account.balances.iso_currency_code,
+  }));
+}
+
+// Plaid rate-limits how often the balance endpoint can be called per Item,
+// and this page re-fetches on every load - so cache for a while and only
+// hit Plaid again once the cache is stale.
+const CACHE_TTL_MS = 15 * 60 * 1000;
 
 async function getBalancesForItem(
   item: StoredItem
 ): Promise<PlaidAccountBalance[]> {
+  const isFresh =
+    item.cachedAt !== null && Date.now() - item.cachedAt.getTime() < CACHE_TTL_MS;
+
+  if (isFresh && item.cachedAccounts) {
+    return toBalances(item, item.cachedAccounts);
+  }
+
   const res = await fetch(`${plaidBaseUrl()}/accounts/balance/get`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -133,19 +176,18 @@ async function getBalancesForItem(
     console.error(
       `getBalancesForItem (${item.institutionName ?? item.itemId}): Plaid returned ${res.status}: ${body}`
     );
+    // Fall back to whatever we last cached (even if stale) rather than
+    // showing nothing, e.g. when rate-limited.
+    if (item.cachedAccounts) {
+      return toBalances(item, item.cachedAccounts);
+    }
     return [];
   }
 
   const data = await res.json();
-
-  return (data.accounts as RawAccount[]).map((account) => ({
-    institutionName: item.institutionName,
-    accountName: account.name,
-    officialName: account.official_name,
-    currentBalance: account.balances.current,
-    availableBalance: account.balances.available,
-    currencyCode: account.balances.iso_currency_code,
-  }));
+  const accounts = data.accounts as RawAccount[];
+  await cacheAccounts(item.itemId, accounts);
+  return toBalances(item, accounts);
 }
 
 export async function getAccountBalances(): Promise<PlaidAccountBalance[] | null> {
