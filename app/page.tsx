@@ -24,7 +24,7 @@ export default async function Home() {
   const nowIso = new Date().toISOString();
 
   return (
-    <main className="mx-auto max-w-5xl w-full p-6 flex flex-col gap-6">
+    <main className="w-full px-3 py-4 flex flex-col gap-4">
       <ClockHeader initialTime={nowIso} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

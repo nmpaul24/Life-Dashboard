@@ -112,11 +112,13 @@ export default function CalendarWidget({
           const key = dateKey(day);
           const dayEvents = eventsByDay.get(key) ?? [];
           const isToday = key === todayKey;
+          const visibleEvents = dayEvents.slice(0, 3);
+          const extraCount = dayEvents.length - visibleEvents.length;
           return (
             <button
               key={key}
               onClick={() => setSelectedDay(key)}
-              className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 border transition-colors ${
+              className={`min-h-[130px] flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 border transition-colors ${
                 isToday
                   ? "bg-fuchsia-400/10 border-fuchsia-400/30"
                   : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
@@ -128,17 +130,27 @@ export default function CalendarWidget({
                   weekday: "short",
                 })}
               </p>
-              <p className="text-sm font-semibold text-white">
+              <p className="text-base font-semibold text-white">
                 {day.toLocaleDateString("en-US", {
                   timeZone: TIME_ZONE,
                   day: "numeric",
                 })}
               </p>
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  dayEvents.length > 0 ? "bg-fuchsia-400" : "bg-transparent"
-                }`}
-              />
+              <div className="flex flex-col gap-1 w-full">
+                {visibleEvents.map((event) => (
+                  <p
+                    key={event.id}
+                    className="text-[10px] leading-tight text-fuchsia-200 bg-fuchsia-400/15 rounded px-1 py-0.5 truncate w-full"
+                  >
+                    {event.title}
+                  </p>
+                ))}
+                {extraCount > 0 && (
+                  <p className="text-[10px] text-white/40">
+                    +{extraCount} more
+                  </p>
+                )}
+              </div>
             </button>
           );
         })}
