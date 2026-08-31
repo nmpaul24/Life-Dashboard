@@ -1,7 +1,7 @@
 # Life Dashboard
 
 A personal life dashboard: goals (daily and long-term) backed by Postgres,
-plus a current-weather widget based on your browser location.
+plus a current-weather widget for Minneapolis, MN.
 
 Stack: Next.js (App Router) + TypeScript, Tailwind CSS, Postgres via Neon,
 OpenWeatherMap for weather, deployed on Vercel.
@@ -55,9 +55,8 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000). You should see the
-dashboard with the weather widget (it'll ask for location permission) and a
-form to add goals (daily or long-term) with lists to check them off or
-delete them.
+dashboard with the current weather for Minneapolis, MN, and a form to add
+goals (daily or long-term) with lists to check them off or delete them.
 
 ## 5. Push to GitHub
 
@@ -88,13 +87,13 @@ then `git remote add origin <repo-url>` before pushing.)
 
 ```
 app/
-  page.tsx                 - dashboard page (weather widget + goals board)
-  weather-widget.tsx        - client component: browser geolocation -> /api/weather
+  page.tsx                 - dashboard page (fetches goals + weather server-side)
+  weather-widget.tsx        - presentational weather card
   goals-board.tsx           - client component: add/view/check off/delete goals
   api/goals/route.ts        - GET (list) / POST (create)
   api/goals/[id]/route.ts   - PATCH (toggle complete) / DELETE
-  api/weather/route.ts      - GET (current weather by lat/lon, server-side OpenWeatherMap call)
 lib/db.ts                  - Postgres client (Neon)
+lib/weather.ts              - OpenWeatherMap fetch for Minneapolis, MN
 db/schema.sql              - goals table definition
 ```
 
