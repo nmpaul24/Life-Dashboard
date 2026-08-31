@@ -57,7 +57,7 @@ export default function GoalsBoard({ initialGoals }: { initialGoals: Goal[] }) {
       }
     >
       {goals.length === 0 && (
-        <p className="text-sm text-white/30">No goals yet.</p>
+        <p className="text-sm text-white/30">No to-dos yet.</p>
       )}
       <ul className="flex flex-col gap-2">
         {goals.map((goal) => (

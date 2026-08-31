@@ -25,16 +25,19 @@ export default async function Home() {
 
   return (
     <main className="w-full px-3 py-4 flex flex-col gap-4">
-      <ClockHeader initialTime={nowIso} />
+      <ClockHeader initialTime={nowIso} middle={<WhoopWidget />} />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <WeatherWidget
-          weather={weather}
-          hourly={forecast?.hourly ?? null}
-          daily={forecast?.daily ?? null}
-        />
-        <WhoopWidget />
-        <PlaidWidget />
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="sm:w-72 shrink-0">
+          <WeatherWidget
+            weather={weather}
+            hourly={forecast?.hourly ?? null}
+            daily={forecast?.daily ?? null}
+          />
+        </div>
+        <div className="flex-1">
+          <PlaidWidget />
+        </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

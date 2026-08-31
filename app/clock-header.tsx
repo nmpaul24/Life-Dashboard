@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { ReactNode } from "react";
 
 const TIME_ZONE = "America/Chicago";
 
@@ -10,7 +11,13 @@ function greeting(hour: number) {
   return "Good evening";
 }
 
-export default function ClockHeader({ initialTime }: { initialTime: string }) {
+export default function ClockHeader({
+  initialTime,
+  middle,
+}: {
+  initialTime: string;
+  middle?: ReactNode;
+}) {
   const [now, setNow] = useState(() => new Date(initialTime));
 
   useEffect(() => {
@@ -38,7 +45,7 @@ export default function ClockHeader({ initialTime }: { initialTime: string }) {
   );
 
   return (
-    <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="rounded-2xl bg-white/[0.03] border border-white/[0.06] px-5 py-4 flex flex-wrap items-center justify-between gap-4">
       <div>
         <p className="text-3xl font-semibold text-white tracking-tight">
           {timeLabel}
@@ -47,6 +54,7 @@ export default function ClockHeader({ initialTime }: { initialTime: string }) {
           {dateLabel}
         </p>
       </div>
+      {middle}
       <p className="text-lg text-white/60">{greeting(hour)}</p>
     </div>
   );
