@@ -6,6 +6,13 @@ CREATE TABLE IF NOT EXISTS goals (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE IF NOT EXISTS events (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  starts_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- Single-row table holding this app's one WHOOP OAuth token set.
 CREATE TABLE IF NOT EXISTS whoop_tokens (
   id BOOLEAN PRIMARY KEY DEFAULT TRUE,

@@ -1,9 +1,9 @@
 # Life Dashboard
 
-A personal life dashboard: goals (daily and long-term) backed by Postgres,
-a current-weather widget for Minneapolis, MN, a WHOOP connection for
-recovery/sleep/strain data, and a Plaid connection for linked investment
-account balances (e.g. Fidelity, SoFi).
+A personal life dashboard: goals (daily and long-term) and a calendar
+(events) backed by Postgres, a current-weather widget for Minneapolis, MN,
+a WHOOP connection for recovery/sleep/strain data, and a Plaid connection
+for linked investment account balances (e.g. Fidelity, SoFi).
 
 Stack: Next.js (App Router) + TypeScript, Tailwind CSS, Postgres via Neon,
 OpenWeatherMap for weather, WHOOP OAuth, Plaid for linked accounts, deployed
@@ -96,8 +96,9 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). You should see the
 dashboard with the current weather for Minneapolis, MN, a "Connect WHOOP"
-button, a "Connect an account" button (Plaid), and a form to add goals
-(daily or long-term) with lists to check them off or delete them.
+button, a "Connect an account" button (Plaid), a form to add goals (daily
+or long-term) with lists to check them off or delete them, and a calendar
+to add/delete events.
 
 ## 7. Push to GitHub
 
@@ -143,15 +144,18 @@ then `git remote add origin <repo-url>` before pushing.)
 
 ```
 app/
-  page.tsx                       - dashboard page (fetches goals + weather server-side)
+  page.tsx                       - dashboard page (fetches goals/events + weather server-side)
   weather-widget.tsx              - presentational weather card
   whoop-widget.tsx                 - connect button, or latest recovery/sleep/strain
   plaid-widget.tsx                 - connect button + each linked account's balance
   connect-account-button.tsx       - client component: loads Plaid Link, handles the flow
   goals-board.tsx                  - client component: add/view/check off/delete goals
+  calendar-widget.tsx               - client component: add/view/delete events
   privacy/page.tsx                 - minimal privacy policy (required by WHOOP's app form)
   api/goals/route.ts               - GET (list) / POST (create)
   api/goals/[id]/route.ts          - PATCH (toggle complete) / DELETE
+  api/events/route.ts              - GET (list) / POST (create)
+  api/events/[id]/route.ts         - DELETE
   api/auth/whoop/route.ts          - starts the WHOOP OAuth flow
   api/auth/whoop/callback/route.ts - exchanges the auth code for tokens, stores them
   api/plaid/link-token/route.ts    - creates a Plaid Link token
@@ -160,9 +164,10 @@ lib/db.ts                         - Postgres client (Neon)
 lib/weather.ts                    - OpenWeatherMap fetch for Minneapolis, MN
 lib/whoop.ts                      - WHOOP token storage/refresh + recovery/sleep/strain fetches
 lib/plaid.ts                      - Plaid Item storage (multiple institutions) + balance fetch
-db/schema.sql                     - table definitions (goals, whoop_tokens, plaid_items)
+db/schema.sql                     - table definitions (goals, events, whoop_tokens, plaid_items)
 ```
 
 ## Out of scope for this pass
 
-No authentication (single-user), no calendar/email/Canvas integrations yet.
+No authentication (single-user), no external calendar (Google/Apple) or
+email/Canvas integrations yet — the calendar is native to this app only.
