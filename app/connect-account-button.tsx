@@ -8,14 +8,17 @@ declare global {
     Plaid?: {
       create: (config: {
         token: string;
-        onSuccess: (publicToken: string) => void;
+        onSuccess: (
+          publicToken: string,
+          metadata: { institution?: { name: string } | null }
+        ) => void;
         onExit?: () => void;
       }) => { open: () => void };
     };
   }
 }
 
-export default function ConnectFidelityButton() {
+export default function ConnectAccountButton() {
   const [loading, setLoading] = useState(false);
   const [scriptReady, setScriptReady] = useState(false);
 
@@ -34,11 +37,14 @@ export default function ConnectFidelityButton() {
 
       const handler = window.Plaid.create({
         token: linkToken,
-        onSuccess: async (publicToken) => {
+        onSuccess: async (publicToken, metadata) => {
           await fetch("/api/plaid/exchange", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ public_token: publicToken }),
+            body: JSON.stringify({
+              public_token: publicToken,
+              institution_name: metadata.institution?.name ?? null,
+            }),
           });
           window.location.reload();
         },
@@ -61,7 +67,7 @@ export default function ConnectFidelityButton() {
         disabled={loading || !scriptReady}
         className="inline-block bg-black text-white rounded px-4 py-2 w-fit text-sm disabled:opacity-50"
       >
-        {loading ? "Connecting..." : "Connect Fidelity"}
+        {loading ? "Connecting..." : "Connect an account"}
       </button>
     </>
   );

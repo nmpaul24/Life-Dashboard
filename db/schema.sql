@@ -15,10 +15,11 @@ CREATE TABLE IF NOT EXISTS whoop_tokens (
   CONSTRAINT whoop_tokens_singleton CHECK (id)
 );
 
--- Single-row table holding this app's one Plaid Item (linked account, e.g. Fidelity).
+-- Plaid Items (linked accounts, e.g. Fidelity, SoFi) — one row per connected institution.
 CREATE TABLE IF NOT EXISTS plaid_items (
-  id BOOLEAN PRIMARY KEY DEFAULT TRUE,
+  id SERIAL PRIMARY KEY,
+  item_id TEXT NOT NULL UNIQUE,
   access_token TEXT NOT NULL,
-  item_id TEXT NOT NULL,
-  CONSTRAINT plaid_items_singleton CHECK (id)
+  institution_name TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

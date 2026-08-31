@@ -37,7 +37,10 @@ export async function createLinkToken(): Promise<string> {
   return data.link_token;
 }
 
-export async function exchangePublicToken(publicToken: string): Promise<void> {
+export async function exchangePublicToken(
+  publicToken: string,
+  institutionName: string | null
+): Promise<void> {
   const res = await fetch(`${plaidBaseUrl()}/item/public_token/exchange`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -57,70 +60,98 @@ export async function exchangePublicToken(publicToken: string): Promise<void> {
   const data = await res.json();
 
   await sql`
-    INSERT INTO plaid_items (id, access_token, item_id)
-    VALUES (true, ${data.access_token}, ${data.item_id})
-    ON CONFLICT (id) DO UPDATE SET
+    INSERT INTO plaid_items (item_id, access_token, institution_name)
+    VALUES (${data.item_id}, ${data.access_token}, ${institutionName})
+    ON CONFLICT (item_id) DO UPDATE SET
       access_token = EXCLUDED.access_token,
-      item_id = EXCLUDED.item_id
+      institution_name = EXCLUDED.institution_name
   `;
 }
 
-export async function hasPlaidItem(): Promise<boolean> {
-  const rows = (await sql`SELECT 1 FROM plaid_items WHERE id = true`) as unknown as unknown[];
+export async function hasPlaidItems(): Promise<boolean> {
+  const rows = (await sql`SELECT 1 FROM plaid_items LIMIT 1`) as unknown as unknown[];
   return rows.length > 0;
 }
 
-async function loadAccessToken(): Promise<string | null> {
+type StoredItem = {
+  itemId: string;
+  accessToken: string;
+  institutionName: string | null;
+};
+
+async function loadAllItems(): Promise<StoredItem[]> {
   const rows = (await sql`
-    SELECT access_token FROM plaid_items WHERE id = true
-  `) as unknown as { access_token: string }[];
-  return rows[0]?.access_token ?? null;
+    SELECT item_id, access_token, institution_name
+    FROM plaid_items
+    ORDER BY created_at
+  `) as unknown as {
+    item_id: string;
+    access_token: string;
+    institution_name: string | null;
+  }[];
+
+  return rows.map((row) => ({
+    itemId: row.item_id,
+    accessToken: row.access_token,
+    institutionName: row.institution_name,
+  }));
 }
 
 export type PlaidAccountBalance = {
-  name: string;
+  institutionName: string | null;
+  accountName: string;
   officialName: string | null;
   currentBalance: number | null;
   availableBalance: number | null;
   currencyCode: string | null;
 };
 
-export async function getAccountBalances(): Promise<PlaidAccountBalance[] | null> {
-  const accessToken = await loadAccessToken();
-  if (!accessToken) return null;
+type RawAccount = {
+  name: string;
+  official_name: string | null;
+  balances: {
+    current: number | null;
+    available: number | null;
+    iso_currency_code: string | null;
+  };
+};
 
+async function getBalancesForItem(
+  item: StoredItem
+): Promise<PlaidAccountBalance[]> {
   const res = await fetch(`${plaidBaseUrl()}/accounts/balance/get`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       ...plaidCredentials(),
-      access_token: accessToken,
+      access_token: item.accessToken,
     }),
   });
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    console.error(`getAccountBalances: Plaid returned ${res.status}: ${body}`);
-    return null;
+    console.error(
+      `getBalancesForItem (${item.institutionName ?? item.itemId}): Plaid returned ${res.status}: ${body}`
+    );
+    return [];
   }
 
   const data = await res.json();
 
-  type RawAccount = {
-    name: string;
-    official_name: string | null;
-    balances: {
-      current: number | null;
-      available: number | null;
-      iso_currency_code: string | null;
-    };
-  };
-
   return (data.accounts as RawAccount[]).map((account) => ({
-    name: account.name,
+    institutionName: item.institutionName,
+    accountName: account.name,
     officialName: account.official_name,
     currentBalance: account.balances.current,
     availableBalance: account.balances.available,
     currencyCode: account.balances.iso_currency_code,
   }));
+}
+
+export async function getAccountBalances(): Promise<PlaidAccountBalance[] | null> {
+  const items = await loadAllItems();
+  if (items.length === 0) return null;
+
+  const results = await Promise.all(items.map(getBalancesForItem));
+  return results.flat();
 }

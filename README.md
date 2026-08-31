@@ -2,12 +2,12 @@
 
 A personal life dashboard: goals (daily and long-term) backed by Postgres,
 a current-weather widget for Minneapolis, MN, a WHOOP connection for
-recovery/sleep/strain data, and a Plaid connection for Fidelity account
-balances.
+recovery/sleep/strain data, and a Plaid connection for linked investment
+account balances (e.g. Fidelity, SoFi).
 
 Stack: Next.js (App Router) + TypeScript, Tailwind CSS, Postgres via Neon,
-OpenWeatherMap for weather, WHOOP OAuth, Plaid for Fidelity, deployed on
-Vercel.
+OpenWeatherMap for weather, WHOOP OAuth, Plaid for linked accounts, deployed
+on Vercel.
 
 ## 1. Create a Neon Postgres database (free tier)
 
@@ -42,21 +42,28 @@ Vercel.
    minimal privacy page is included in this app at that route).
 4. Copy the **Client ID** and **Client Secret** WHOOP gives you.
 
-## 4. Create a Plaid developer account (for the Fidelity connection)
+## 4. Create a Plaid developer account (for linked investment accounts)
 
 1. Go to [dashboard.plaid.com/signup](https://dashboard.plaid.com/signup) and
    sign up (free).
 2. Under **Team Settings → Keys**, copy the **Client ID** and the **Sandbox
    secret**.
-3. This app is built against Plaid's **Sandbox** environment by default
-   (`PLAID_ENV=sandbox`) — it works immediately with Plaid's fake test
-   institutions/credentials, no approval needed. To connect your real
-   Fidelity account, you'll need Plaid to grant **Production** access (check
-   your dashboard for a self-serve "Get Production Access" option, or apply
-   through Plaid support) — once granted, swap `PLAID_CLIENT_ID` /
-   `PLAID_SECRET` for the Production values and set `PLAID_ENV=production`,
-   then reconnect (Sandbox and Production are separate systems; a Sandbox
-   connection won't carry over).
+3. This app can run against either Plaid environment:
+   - **Sandbox** (`PLAID_ENV=sandbox`) — works immediately with Plaid's fake
+     test institutions/credentials (e.g. "First Platypus Bank" with
+     `user_good` / `pass_good`), no approval needed. Good for testing the
+     flow before connecting real accounts.
+   - **Production** (`PLAID_ENV=production`) — connects your real accounts
+     (Fidelity, SoFi, etc.). Investment accounts are billed per connected
+     Item under Plaid's Investments product (check Plaid's current pricing —
+     this is a real, small recurring cost per linked account, not free).
+     Swap `PLAID_CLIENT_ID` / `PLAID_SECRET` for the Production values from
+     the same Keys page. Sandbox and Production are separate systems — a
+     Sandbox connection won't carry over, you'll need to reconnect.
+4. The **Connect an account** button supports linking multiple institutions
+   — click it again anytime to add another (e.g. connect Fidelity, then
+   click it again to also connect SoFi). Each shows up as its own balance
+   card.
 
 ## 5. Configure the app locally
 
@@ -89,8 +96,8 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). You should see the
 dashboard with the current weather for Minneapolis, MN, a "Connect WHOOP"
-button, a "Connect Fidelity" button, and a form to add goals (daily or
-long-term) with lists to check them off or delete them.
+button, a "Connect an account" button (Plaid), and a form to add goals
+(daily or long-term) with lists to check them off or delete them.
 
 ## 7. Push to GitHub
 
@@ -127,10 +134,10 @@ then `git remote add origin <repo-url>` before pushing.)
    connected, it shows your latest Recovery %, Sleep performance %, and
    Strain (the daily overall number WHOOP's home screen shows, i.e. Cycle
    strain — not per-workout strain).
-7. Click **Connect Fidelity** and go through Plaid Link. In Sandbox mode,
+7. Click **Connect an account** and go through Plaid Link. In Sandbox mode,
    use one of Plaid's test institutions with the test credentials
-   `user_good` / `pass_good`. Once connected, it shows each linked account's
-   current balance.
+   `user_good` / `pass_good`. Click it again to link additional institutions
+   (e.g. Fidelity, then SoFi) — each shows up as its own balance card.
 
 ## Project structure
 
@@ -139,8 +146,8 @@ app/
   page.tsx                       - dashboard page (fetches goals + weather server-side)
   weather-widget.tsx              - presentational weather card
   whoop-widget.tsx                 - connect button, or latest recovery/sleep/strain
-  plaid-widget.tsx                 - connect button, or Fidelity account balances
-  connect-fidelity-button.tsx      - client component: loads Plaid Link, handles the flow
+  plaid-widget.tsx                 - connect button + each linked account's balance
+  connect-account-button.tsx       - client component: loads Plaid Link, handles the flow
   goals-board.tsx                  - client component: add/view/check off/delete goals
   privacy/page.tsx                 - minimal privacy policy (required by WHOOP's app form)
   api/goals/route.ts               - GET (list) / POST (create)
@@ -152,7 +159,7 @@ app/
 lib/db.ts                         - Postgres client (Neon)
 lib/weather.ts                    - OpenWeatherMap fetch for Minneapolis, MN
 lib/whoop.ts                      - WHOOP token storage/refresh + recovery/sleep/strain fetches
-lib/plaid.ts                      - Plaid Item storage + account balance fetch
+lib/plaid.ts                      - Plaid Item storage (multiple institutions) + balance fetch
 db/schema.sql                     - table definitions (goals, whoop_tokens, plaid_items)
 ```
 
