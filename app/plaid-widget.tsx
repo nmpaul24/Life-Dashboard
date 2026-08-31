@@ -1,45 +1,49 @@
 import { hasPlaidItems, getAccountBalances } from "@/lib/plaid";
 import ConnectAccountButton from "./connect-account-button";
+import { Card, Stat } from "./card";
 
 export default async function PlaidWidget() {
   const connected = await hasPlaidItems();
   const balances = connected ? await getAccountBalances() : null;
 
   return (
-    <section className="flex flex-col gap-2">
-      <h2 className="text-lg font-medium">Investments</h2>
-
+    <Card
+      title="Investments"
+      accentColor="bg-amber-400"
+      action={<ConnectAccountButton />}
+    >
       {connected && (!balances || balances.length === 0) && (
-        <p className="text-sm text-gray-400">
+        <p className="text-sm text-white/40">
           Could not load account balances.
         </p>
       )}
 
+      {!connected && (
+        <p className="text-sm text-white/40">Not connected yet.</p>
+      )}
+
       {balances && balances.length > 0 && (
-        <div className="flex flex-wrap gap-3">
+        <div className="grid grid-cols-2 gap-4">
           {balances.map((account, i) => (
-            <div
+            <Stat
               key={`${account.institutionName ?? "account"}-${i}`}
-              className="border rounded px-3 py-2 w-fit"
-            >
-              <p className="text-sm text-gray-500">
-                {account.institutionName ? `${account.institutionName} — ` : ""}
-                {account.accountName}
-              </p>
-              <p className="font-medium">
-                {account.currentBalance !== null
+              label={
+                account.institutionName
+                  ? `${account.institutionName} — ${account.accountName}`
+                  : account.accountName
+              }
+              value={
+                account.currentBalance !== null
                   ? `$${account.currentBalance.toLocaleString(undefined, {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}`
-                  : "—"}
-              </p>
-            </div>
+                  : "—"
+              }
+            />
           ))}
         </div>
       )}
-
-      <ConnectAccountButton />
-    </section>
+    </Card>
   );
 }

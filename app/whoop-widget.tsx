@@ -4,6 +4,7 @@ import {
   getWhoopSleep,
   getWhoopStrain,
 } from "@/lib/whoop";
+import { Card, Stat, PillLink } from "./card";
 
 export default async function WhoopWidget() {
   const connected = await hasWhoopTokens();
@@ -13,10 +14,17 @@ export default async function WhoopWidget() {
     : [null, null, null];
 
   return (
-    <section className="flex flex-col gap-2">
-      <h2 className="text-lg font-medium">WHOOP</h2>
-      {connected && (
-        <div className="flex flex-wrap gap-3">
+    <Card
+      title="WHOOP"
+      accentColor="bg-emerald-400"
+      action={
+        <PillLink href="/api/auth/whoop">
+          {connected ? "Reconnect" : "Connect"}
+        </PillLink>
+      }
+    >
+      {connected ? (
+        <div className="grid grid-cols-3 gap-3">
           <Stat
             label="Recovery"
             value={recovery ? `${recovery.recoveryScore}%` : "—"}
@@ -30,22 +38,9 @@ export default async function WhoopWidget() {
             value={strain ? strain.strain.toFixed(1) : "—"}
           />
         </div>
+      ) : (
+        <p className="text-sm text-white/40">Not connected yet.</p>
       )}
-      <a
-        href="/api/auth/whoop"
-        className="inline-block bg-black text-white rounded px-4 py-2 w-fit text-sm"
-      >
-        {connected ? "Reconnect WHOOP" : "Connect WHOOP"}
-      </a>
-    </section>
-  );
-}
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="border rounded px-3 py-2 w-fit">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="font-medium">{value}</p>
-    </div>
+    </Card>
   );
 }

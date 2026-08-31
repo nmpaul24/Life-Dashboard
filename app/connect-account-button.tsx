@@ -65,7 +65,7 @@ export default function ConnectAccountButton() {
       <button
         onClick={handleClick}
         disabled={loading || !scriptReady}
-        className="inline-block bg-black text-white rounded px-4 py-2 w-fit text-sm disabled:opacity-50"
+        className="text-xs px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 transition-colors disabled:opacity-40"
       >
         {loading ? "Connecting..." : "Connect an account"}
       </button>

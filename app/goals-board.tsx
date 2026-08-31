@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Card } from "./card";
 
 export type Goal = {
   id: number;
@@ -44,26 +45,31 @@ export default function GoalsBoard({ initialGoals }: { initialGoals: Goal[] }) {
   const longTermGoals = goals.filter((g) => g.type === "long_term");
 
   return (
-    <section className="flex flex-col gap-4">
-      <h2 className="text-lg font-medium">Goals</h2>
-
+    <Card title="Goals" accentColor="bg-violet-400">
       <form onSubmit={addGoal} className="flex flex-col sm:flex-row gap-2">
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Add a goal..."
-          className="flex-1 border rounded px-3 py-2"
+          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder:text-white/30 focus:outline-none focus:border-white/25"
         />
         <select
           value={type}
           onChange={(e) => setType(e.target.value as "daily" | "long_term")}
-          className="border rounded px-3 py-2"
+          className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-white/25"
         >
-          <option value="daily">Daily</option>
-          <option value="long_term">Long-term</option>
+          <option value="daily" className="bg-[#0a0a0f]">
+            Daily
+          </option>
+          <option value="long_term" className="bg-[#0a0a0f]">
+            Long-term
+          </option>
         </select>
-        <button type="submit" className="bg-black text-white rounded px-4 py-2">
+        <button
+          type="submit"
+          className="bg-violet-500 hover:bg-violet-400 text-white rounded-xl px-4 py-2 font-medium transition-colors"
+        >
           Add
         </button>
       </form>
@@ -82,7 +88,7 @@ export default function GoalsBoard({ initialGoals }: { initialGoals: Goal[] }) {
           onDelete={deleteGoal}
         />
       </div>
-    </section>
+    </Card>
   );
 }
 
@@ -99,31 +105,34 @@ function GoalList({
 }) {
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="text-sm font-medium text-gray-500">{title}</h3>
+      <h3 className="text-xs font-medium text-white/40 uppercase tracking-wide">
+        {title}
+      </h3>
       {goals.length === 0 && (
-        <p className="text-sm text-gray-400">No goals yet.</p>
+        <p className="text-sm text-white/30">No goals yet.</p>
       )}
-      <ul className="flex flex-col gap-1">
+      <ul className="flex flex-col gap-2">
         {goals.map((goal) => (
           <li
             key={goal.id}
-            className="flex items-center gap-2 border rounded px-3 py-2"
+            className="flex items-center gap-3 rounded-xl bg-white/[0.03] border border-white/[0.06] px-3 py-2.5"
           >
             <input
               type="checkbox"
               checked={goal.completed}
               onChange={() => onToggle(goal.id)}
+              className="accent-violet-500 h-4 w-4"
             />
             <span
               className={`flex-1 ${
-                goal.completed ? "line-through text-gray-400" : ""
+                goal.completed ? "line-through text-white/30" : "text-white/90"
               }`}
             >
               {goal.text}
             </span>
             <button
               onClick={() => onDelete(goal.id)}
-              className="text-sm text-red-500"
+              className="text-xs text-rose-400 hover:text-rose-300 transition-colors"
             >
               Delete
             </button>

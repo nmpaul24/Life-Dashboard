@@ -1,33 +1,38 @@
 import type { Weather } from "@/lib/weather";
+import { Card } from "./card";
 
-export default function WeatherWidget({ weather }: { weather: Weather | null }) {
+export default function WeatherWidget({
+  weather,
+}: {
+  weather: Weather | null;
+}) {
   return (
-    <section className="flex flex-col gap-2">
-      <h2 className="text-lg font-medium">Weather</h2>
+    <Card title="Weather" accentColor="bg-sky-400">
       {!weather && (
-        <p className="text-sm text-gray-400">Could not load weather.</p>
+        <p className="text-sm text-white/40">Could not load weather.</p>
       )}
       {weather && (
-        <div className="flex items-center gap-3 border rounded px-3 py-2 w-fit">
+        <div className="flex items-center gap-4">
           {weather.icon && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={`https://openweathermap.org/img/wn/${weather.icon}@2x.png`}
               alt={weather.description}
-              width={40}
-              height={40}
+              width={56}
+              height={56}
+              className="drop-shadow-[0_0_14px_rgba(56,189,248,0.35)]"
             />
           )}
           <div>
-            <p className="font-medium">
-              {weather.tempF}°F — {weather.city}
+            <p className="text-2xl font-semibold text-white">
+              {weather.tempF}°F
             </p>
-            <p className="text-sm text-gray-500 capitalize">
-              {weather.description}
+            <p className="text-sm text-white/50 capitalize">
+              {weather.description} — {weather.city}
             </p>
           </div>
         </div>
       )}
-    </section>
+    </Card>
   );
 }
