@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "./card";
+import Modal from "./modal";
 
 export type Event = {
   id: number;
@@ -10,15 +11,52 @@ export type Event = {
   created_at: string;
 };
 
+const TIME_ZONE = "America/Chicago";
+const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+function dateKey(date: Date): string {
+  return date.toLocaleDateString("en-CA", { timeZone: TIME_ZONE });
+}
+
+function weekdayIndex(date: Date): number {
+  const name = date.toLocaleDateString("en-US", {
+    timeZone: TIME_ZONE,
+    weekday: "short",
+  });
+  return DAY_NAMES.indexOf(name);
+}
+
+function getWeekDays(referenceDate: Date): Date[] {
+  const idx = weekdayIndex(referenceDate);
+  const sunday = new Date(referenceDate.getTime() - idx * DAY_MS);
+  return Array.from({ length: 7 }, (_, i) => new Date(sunday.getTime() + i * DAY_MS));
+}
+
 export default function CalendarWidget({
   initialEvents,
+  today,
 }: {
   initialEvents: Event[];
+  today: string;
 }) {
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [title, setTitle] = useState("");
   const [startsAt, setStartsAt] = useState("");
-  const [now] = useState(() => Date.now());
+  const [addOpen, setAddOpen] = useState(false);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [referenceDate] = useState(() => new Date(today));
+
+  const weekDays = getWeekDays(referenceDate);
+  const todayKey = dateKey(referenceDate);
+
+  const eventsByDay = new Map<string, Event[]>();
+  for (const event of events) {
+    const key = dateKey(new Date(event.starts_at));
+    const list = eventsByDay.get(key) ?? [];
+    list.push(event);
+    eventsByDay.set(key, list);
+  }
 
   async function addEvent(e: React.FormEvent) {
     e.preventDefault();
@@ -38,6 +76,7 @@ export default function CalendarWidget({
     );
     setTitle("");
     setStartsAt("");
+    setAddOpen(false);
   }
 
   async function deleteEvent(id: number) {
@@ -45,52 +84,111 @@ export default function CalendarWidget({
     setEvents((prev) => prev.filter((e) => e.id !== id));
   }
 
-  return (
-    <Card title="Calendar" accentColor="bg-fuchsia-400">
-      <form onSubmit={addEvent} className="flex flex-col sm:flex-row gap-2">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Event title..."
-          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder:text-white/30 focus:outline-none focus:border-white/25"
-        />
-        <input
-          type="datetime-local"
-          value={startsAt}
-          onChange={(e) => setStartsAt(e.target.value)}
-          className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-white/25"
-        />
-        <button
-          type="submit"
-          className="bg-fuchsia-500 hover:bg-fuchsia-400 text-white rounded-xl px-4 py-2 font-medium transition-colors"
-        >
-          Add
-        </button>
-      </form>
+  const selectedEvents = selectedDay ? eventsByDay.get(selectedDay) ?? [] : [];
+  const selectedLabel = selectedDay
+    ? new Date(`${selectedDay}T12:00:00`).toLocaleDateString("en-US", {
+        timeZone: TIME_ZONE,
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+      })
+    : "";
 
-      <div className="flex flex-col gap-2">
-        {events.length === 0 && (
-          <p className="text-sm text-white/30">No events yet.</p>
-        )}
-        <ul className="flex flex-col gap-2">
-          {events.map((event) => {
-            const isPast = new Date(event.starts_at).getTime() < now;
-            return (
+  return (
+    <Card
+      title="Calendar"
+      accentColor="bg-fuchsia-400"
+      action={
+        <button
+          onClick={() => setAddOpen(true)}
+          className="text-xs px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 transition-colors"
+        >
+          + Add
+        </button>
+      }
+    >
+      <div className="grid grid-cols-7 gap-1.5">
+        {weekDays.map((day) => {
+          const key = dateKey(day);
+          const dayEvents = eventsByDay.get(key) ?? [];
+          const isToday = key === todayKey;
+          return (
+            <button
+              key={key}
+              onClick={() => setSelectedDay(key)}
+              className={`flex flex-col items-center gap-1 rounded-xl px-1 py-2 border transition-colors ${
+                isToday
+                  ? "bg-fuchsia-400/10 border-fuchsia-400/30"
+                  : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
+              }`}
+            >
+              <p className="text-[10px] text-white/40 uppercase">
+                {day.toLocaleDateString("en-US", {
+                  timeZone: TIME_ZONE,
+                  weekday: "short",
+                })}
+              </p>
+              <p className="text-sm font-semibold text-white">
+                {day.toLocaleDateString("en-US", {
+                  timeZone: TIME_ZONE,
+                  day: "numeric",
+                })}
+              </p>
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  dayEvents.length > 0 ? "bg-fuchsia-400" : "bg-transparent"
+                }`}
+              />
+            </button>
+          );
+        })}
+      </div>
+
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add event">
+        <form onSubmit={addEvent} className="flex flex-col gap-3">
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Event title..."
+            autoFocus
+            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder:text-white/30 focus:outline-none focus:border-white/25"
+          />
+          <input
+            type="datetime-local"
+            value={startsAt}
+            onChange={(e) => setStartsAt(e.target.value)}
+            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-white/25"
+          />
+          <button
+            type="submit"
+            className="bg-fuchsia-500 hover:bg-fuchsia-400 text-white rounded-xl px-4 py-2 font-medium transition-colors"
+          >
+            Add
+          </button>
+        </form>
+      </Modal>
+
+      <Modal
+        open={selectedDay !== null}
+        onClose={() => setSelectedDay(null)}
+        title={selectedLabel}
+      >
+        <div className="flex flex-col gap-2">
+          {selectedEvents.length === 0 && (
+            <p className="text-sm text-white/30">No events on this day.</p>
+          )}
+          <ul className="flex flex-col gap-2">
+            {selectedEvents.map((event) => (
               <li
                 key={event.id}
-                className={`flex items-center gap-3 rounded-xl bg-white/[0.03] border border-white/[0.06] px-3 py-2.5 ${
-                  isPast ? "opacity-40" : ""
-                }`}
+                className="flex items-center gap-3 rounded-xl bg-white/[0.03] border border-white/[0.06] px-3 py-2.5"
               >
                 <div className="flex-1">
                   <p className="text-white/90">{event.title}</p>
                   <p className="text-xs text-white/40">
-                    {new Date(event.starts_at).toLocaleString("en-US", {
-                      timeZone: "America/Chicago",
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
+                    {new Date(event.starts_at).toLocaleTimeString("en-US", {
+                      timeZone: TIME_ZONE,
                       hour: "numeric",
                       minute: "2-digit",
                     })}
@@ -103,10 +201,10 @@ export default function CalendarWidget({
                   Delete
                 </button>
               </li>
-            );
-          })}
-        </ul>
-      </div>
+            ))}
+          </ul>
+        </div>
+      </Modal>
     </Card>
   );
 }

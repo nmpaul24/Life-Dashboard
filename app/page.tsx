@@ -21,9 +21,11 @@ export default async function Home() {
     getForecast(),
   ]);
 
+  const nowIso = new Date().toISOString();
+
   return (
     <main className="mx-auto max-w-5xl w-full p-6 flex flex-col gap-6">
-      <ClockHeader initialTime={new Date().toISOString()} />
+      <ClockHeader initialTime={nowIso} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <WeatherWidget
@@ -37,7 +39,7 @@ export default async function Home() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <GoalsBoard initialGoals={goals} />
-        <CalendarWidget initialEvents={events} />
+        <CalendarWidget initialEvents={events} today={nowIso} />
       </div>
     </main>
   );

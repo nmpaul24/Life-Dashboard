@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Card } from "./card";
+import Modal from "./modal";
 
 export type Goal = {
   id: number;
@@ -14,7 +15,7 @@ export type Goal = {
 export default function GoalsBoard({ initialGoals }: { initialGoals: Goal[] }) {
   const [goals, setGoals] = useState<Goal[]>(initialGoals);
   const [text, setText] = useState("");
-  const [type, setType] = useState<"daily" | "long_term">("daily");
+  const [addOpen, setAddOpen] = useState(false);
 
   async function addGoal(e: React.FormEvent) {
     e.preventDefault();
@@ -23,11 +24,12 @@ export default function GoalsBoard({ initialGoals }: { initialGoals: Goal[] }) {
     const res = await fetch("/api/goals", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, type }),
+      body: JSON.stringify({ text, type: "daily" }),
     });
     const goal = await res.json();
     setGoals((prev) => [goal, ...prev]);
     setText("");
+    setAddOpen(false);
   }
 
   async function toggleGoal(id: number) {
@@ -41,73 +43,19 @@ export default function GoalsBoard({ initialGoals }: { initialGoals: Goal[] }) {
     setGoals((prev) => prev.filter((g) => g.id !== id));
   }
 
-  const dailyGoals = goals.filter((g) => g.type === "daily");
-  const longTermGoals = goals.filter((g) => g.type === "long_term");
-
   return (
-    <Card title="Goals" accentColor="bg-violet-400">
-      <form onSubmit={addGoal} className="flex flex-col sm:flex-row gap-2">
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Add a goal..."
-          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder:text-white/30 focus:outline-none focus:border-white/25"
-        />
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as "daily" | "long_term")}
-          className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-white/25"
-        >
-          <option value="daily" className="bg-[#0a0a0f]">
-            Daily
-          </option>
-          <option value="long_term" className="bg-[#0a0a0f]">
-            Long-term
-          </option>
-        </select>
+    <Card
+      title="To-Do List"
+      accentColor="bg-violet-400"
+      action={
         <button
-          type="submit"
-          className="bg-violet-500 hover:bg-violet-400 text-white rounded-xl px-4 py-2 font-medium transition-colors"
+          onClick={() => setAddOpen(true)}
+          className="text-xs px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 transition-colors"
         >
-          Add
+          + Add
         </button>
-      </form>
-
-      <div className="grid gap-6 sm:grid-cols-2">
-        <GoalList
-          title="Daily"
-          goals={dailyGoals}
-          onToggle={toggleGoal}
-          onDelete={deleteGoal}
-        />
-        <GoalList
-          title="Long-term"
-          goals={longTermGoals}
-          onToggle={toggleGoal}
-          onDelete={deleteGoal}
-        />
-      </div>
-    </Card>
-  );
-}
-
-function GoalList({
-  title,
-  goals,
-  onToggle,
-  onDelete,
-}: {
-  title: string;
-  goals: Goal[];
-  onToggle: (id: number) => void;
-  onDelete: (id: number) => void;
-}) {
-  return (
-    <div className="flex flex-col gap-2">
-      <h3 className="text-xs font-medium text-white/40 uppercase tracking-wide">
-        {title}
-      </h3>
+      }
+    >
       {goals.length === 0 && (
         <p className="text-sm text-white/30">No goals yet.</p>
       )}
@@ -120,7 +68,7 @@ function GoalList({
             <input
               type="checkbox"
               checked={goal.completed}
-              onChange={() => onToggle(goal.id)}
+              onChange={() => toggleGoal(goal.id)}
               className="accent-violet-500 h-4 w-4"
             />
             <span
@@ -131,7 +79,7 @@ function GoalList({
               {goal.text}
             </span>
             <button
-              onClick={() => onDelete(goal.id)}
+              onClick={() => deleteGoal(goal.id)}
               className="text-xs text-rose-400 hover:text-rose-300 transition-colors"
             >
               Delete
@@ -139,6 +87,25 @@ function GoalList({
           </li>
         ))}
       </ul>
-    </div>
+
+      <Modal open={addOpen} onClose={() => setAddOpen(false)} title="Add to-do">
+        <form onSubmit={addGoal} className="flex flex-col gap-3">
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="What do you need to do?"
+            autoFocus
+            className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-white placeholder:text-white/30 focus:outline-none focus:border-white/25"
+          />
+          <button
+            type="submit"
+            className="bg-violet-500 hover:bg-violet-400 text-white rounded-xl px-4 py-2 font-medium transition-colors"
+          >
+            Add
+          </button>
+        </form>
+      </Modal>
+    </Card>
   );
 }

@@ -1,9 +1,9 @@
 # Life Dashboard
 
-A personal life dashboard: goals (daily and long-term) and a calendar
-(events) backed by Postgres, a current-weather widget for Minneapolis, MN,
-a WHOOP connection for recovery/sleep/strain data, and a Plaid connection
-for linked investment account balances (e.g. Fidelity, SoFi).
+A personal life dashboard: a To-Do List and a Calendar (both backed by
+Postgres), a current-weather widget for Minneapolis, MN, a WHOOP connection
+for recovery/sleep/strain data, and a Plaid connection for linked
+investment account balances (e.g. Fidelity, SoFi).
 
 Stack: Next.js (App Router) + TypeScript, Tailwind CSS, Postgres via Neon,
 OpenWeatherMap for weather, WHOOP OAuth, Plaid for linked accounts, deployed
@@ -96,9 +96,10 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). You should see the
 dashboard with the current weather for Minneapolis, MN, a "Connect WHOOP"
-button, a "Connect an account" button (Plaid), a form to add goals (daily
-or long-term) with lists to check them off or delete them, and a calendar
-to add/delete events.
+button, a "Connect an account" button (Plaid), a To-Do List (click "+ Add"
+for a popup to add an item, check off or delete from the list), and a
+Calendar showing the current week as a 7-day grid (click a day to see/add
+events for it via "+ Add").
 
 ## 7. Push to GitHub
 
@@ -149,8 +150,9 @@ app/
   whoop-widget.tsx                 - connect button, or latest recovery/sleep/strain
   plaid-widget.tsx                 - connect button + each linked account's balance
   connect-account-button.tsx       - client component: loads Plaid Link, handles the flow
-  goals-board.tsx                  - client component: add/view/check off/delete goals
-  calendar-widget.tsx               - client component: add/view/delete events
+  goals-board.tsx                  - To-Do List: single list, add via popup, check off/delete
+  calendar-widget.tsx               - Calendar: current-week grid, click a day for its events popup
+  modal.tsx                         - shared popup/modal used by both
   privacy/page.tsx                 - minimal privacy policy (required by WHOOP's app form)
   api/goals/route.ts               - GET (list) / POST (create)
   api/goals/[id]/route.ts          - PATCH (toggle complete) / DELETE
