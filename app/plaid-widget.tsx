@@ -29,7 +29,7 @@ export default async function PlaidWidget() {
             <p className="text-xs text-white/40 uppercase tracking-wide">
               Net Worth
             </p>
-            <p className="text-3xl font-bold text-white mt-1 drop-shadow-[0_0_18px_rgba(251,191,36,0.35)]">
+            <p className="text-3xl font-bold text-white mt-1 drop-shadow-[0_0_22px_rgba(251,191,36,0.65)]">
               $
               {balances
                 .reduce((sum, a) => sum + (a.currentBalance ?? 0), 0)

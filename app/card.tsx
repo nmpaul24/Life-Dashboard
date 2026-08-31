@@ -15,16 +15,17 @@ export function Card({
 }) {
   return (
     <div
-      className="min-w-0 rounded-2xl border border-white/[0.08] p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
+      className="min-w-0 rounded-2xl border p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgba(0,0,0,0.4)]"
       style={{
-        background: `radial-gradient(120% 100% at 0% 0%, rgba(${glowRgb},0.16) 0%, rgba(255,255,255,0.025) 45%, rgba(255,255,255,0.02) 100%)`,
+        background: `radial-gradient(130% 110% at 0% 0%, rgba(${glowRgb},0.32) 0%, rgba(${glowRgb},0.08) 35%, rgba(255,255,255,0.02) 75%)`,
+        borderColor: `rgba(${glowRgb},0.25)`,
       }}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
           <span
-            className={`h-2 w-2 rounded-full ${accentColor}`}
-            style={{ boxShadow: `0 0 10px 2px rgba(${glowRgb},0.7)` }}
+            className={`h-2.5 w-2.5 rounded-full ${accentColor}`}
+            style={{ boxShadow: `0 0 16px 4px rgba(${glowRgb},0.9)` }}
           />
           <h2 className="text-sm font-medium text-white/70 tracking-wide">
             {title}

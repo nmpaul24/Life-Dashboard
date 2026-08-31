@@ -28,7 +28,7 @@ export default function WeatherWidget({
               />
             )}
             <div>
-              <p className="text-xl font-semibold text-white drop-shadow-[0_0_16px_rgba(56,189,248,0.4)]">
+              <p className="text-xl font-semibold text-white drop-shadow-[0_0_20px_rgba(56,189,248,0.7)]">
                 {weather.tempF}°F
               </p>
               <p className="text-xs text-white/50 capitalize">
