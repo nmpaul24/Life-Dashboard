@@ -8,6 +8,12 @@ import { Card, PillLink } from "./card";
 
 const STRAIN_MAX = 21;
 
+function recoveryColor(score: number): string {
+  if (score >= 67) return "#34d399"; // green
+  if (score >= 34) return "#fbbf24"; // yellow
+  return "#f87171"; // red
+}
+
 export default async function WhoopWidget() {
   const connected = await hasWhoopTokens();
 
@@ -37,7 +43,7 @@ export default async function WhoopWidget() {
             percent={recovery ? recovery.recoveryScore : 0}
             value={recovery ? `${recovery.recoveryScore}%` : "—"}
             label="Recovery"
-            color="#34d399"
+            color={recovery ? recoveryColor(recovery.recoveryScore) : "#64748b"}
           />
           <Ring
             percent={strain ? (strain.strain / STRAIN_MAX) * 100 : 0}
