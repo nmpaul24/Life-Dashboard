@@ -1,5 +1,6 @@
 import { sql } from "@/lib/db";
 import GoalsBoard, { type Goal } from "./goals-board";
+import WeatherWidget from "./weather-widget";
 
 export const dynamic = "force-dynamic";
 
@@ -11,6 +12,7 @@ export default async function Home() {
   return (
     <main className="mx-auto max-w-2xl w-full p-6 flex flex-col gap-8">
       <h1 className="text-2xl font-semibold">Life Dashboard</h1>
+      <WeatherWidget />
       <GoalsBoard initialGoals={goals} />
     </main>
   );
