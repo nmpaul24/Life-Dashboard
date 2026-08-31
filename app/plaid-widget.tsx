@@ -23,26 +23,43 @@ export default async function PlaidWidget() {
       )}
 
       {balances && balances.length > 0 && (
-        <div className="grid grid-cols-2 gap-4">
-          {balances.map((account, i) => (
-            <Stat
-              key={`${account.institutionName ?? "account"}-${i}`}
-              label={
-                account.institutionName
-                  ? `${account.institutionName} — ${account.accountName}`
-                  : account.accountName
-              }
-              value={
-                account.currentBalance !== null
-                  ? `$${account.currentBalance.toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}`
-                  : "—"
-              }
-            />
-          ))}
-        </div>
+        <>
+          <div>
+            <p className="text-xs text-white/40 uppercase tracking-wide">
+              Net Worth
+            </p>
+            <p className="text-3xl font-bold text-white mt-1">
+              $
+              {balances
+                .reduce((sum, a) => sum + (a.currentBalance ?? 0), 0)
+                .toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            {balances.map((account, i) => (
+              <Stat
+                key={`${account.institutionName ?? "account"}-${i}`}
+                label={
+                  account.institutionName
+                    ? `${account.institutionName} — ${account.accountName}`
+                    : account.accountName
+                }
+                value={
+                  account.currentBalance !== null
+                    ? `$${account.currentBalance.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}`
+                    : "—"
+                }
+              />
+            ))}
+          </div>
+        </>
       )}
     </Card>
   );
