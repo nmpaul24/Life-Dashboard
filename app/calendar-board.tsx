@@ -14,6 +14,9 @@ const TIME_ZONE = "America/Chicago";
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MINUTES_PER_DAY = 24 * 60;
+const RANGE_START_MIN = 7 * 60;
+const RANGE_END_MIN = MINUTES_PER_DAY;
+const RANGE_SPAN_MIN = RANGE_END_MIN - RANGE_START_MIN;
 const WHEEL_THRESHOLD = 250;
 const WHEEL_COOLDOWN_MS = 500;
 
@@ -220,10 +223,19 @@ export default function CalendarBoard({
         className={`flex-1 min-h-0 flex gap-1.5 transition-opacity ${loading ? "opacity-50" : ""}`}
       >
         <div className="relative w-7 shrink-0 text-[9px] text-white/30">
-          <span className="absolute -top-1.5">12A</span>
-          <span className="absolute top-1/4 -translate-y-1/2">6A</span>
-          <span className="absolute top-1/2 -translate-y-1/2">12P</span>
-          <span className="absolute top-3/4 -translate-y-1/2">6P</span>
+          <span className="absolute -top-1.5">7A</span>
+          <span
+            className="absolute -translate-y-1/2"
+            style={{ top: `${((12 * 60 - RANGE_START_MIN) / RANGE_SPAN_MIN) * 100}%` }}
+          >
+            12P
+          </span>
+          <span
+            className="absolute -translate-y-1/2"
+            style={{ top: `${((18 * 60 - RANGE_START_MIN) / RANGE_SPAN_MIN) * 100}%` }}
+          >
+            6P
+          </span>
           <span className="absolute -bottom-1.5">12A</span>
         </div>
 
@@ -247,17 +259,26 @@ export default function CalendarBoard({
                     : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
                 }`}
               >
-                <div className="absolute inset-x-0 top-1/4 border-t border-white/[0.06]" />
-                <div className="absolute inset-x-0 top-1/2 border-t border-white/[0.06]" />
-                <div className="absolute inset-x-0 top-3/4 border-t border-white/[0.06]" />
+                <div
+                  className="absolute inset-x-0 border-t border-white/[0.06]"
+                  style={{ top: `${((12 * 60 - RANGE_START_MIN) / RANGE_SPAN_MIN) * 100}%` }}
+                />
+                <div
+                  className="absolute inset-x-0 border-t border-white/[0.06]"
+                  style={{ top: `${((18 * 60 - RANGE_START_MIN) / RANGE_SPAN_MIN) * 100}%` }}
+                />
 
                 {dayEvents.map((event) => {
                   const startMin = minutesSinceMidnight(event.startsAt);
                   const rawEndMin = minutesSinceMidnight(event.endsAt);
                   const endMin =
                     rawEndMin > startMin ? rawEndMin : Math.min(startMin + 60, MINUTES_PER_DAY);
-                  const topPct = (startMin / MINUTES_PER_DAY) * 100;
-                  const heightPct = ((endMin - startMin) / MINUTES_PER_DAY) * 100;
+                  if (endMin <= RANGE_START_MIN) return null;
+
+                  const clampedStart = Math.max(startMin, RANGE_START_MIN);
+                  const clampedEnd = Math.max(Math.min(endMin, RANGE_END_MIN), clampedStart);
+                  const topPct = ((clampedStart - RANGE_START_MIN) / RANGE_SPAN_MIN) * 100;
+                  const heightPct = ((clampedEnd - clampedStart) / RANGE_SPAN_MIN) * 100;
                   return (
                     <div
                       key={event.id}
