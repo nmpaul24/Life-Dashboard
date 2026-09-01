@@ -1,5 +1,12 @@
 import { sql } from "@/lib/db";
 import { getWeather, getForecast } from "@/lib/weather";
+import {
+  getChecklistItems,
+  getCompletedIdsForDay,
+  getWeekPercent,
+  todayKey,
+  weekStartKey,
+} from "@/lib/checklist";
 import GoalsBoard, { type Goal } from "./goals-board";
 import CalendarWidget from "./calendar-widget";
 import WeatherWidget from "./weather-widget";
@@ -7,16 +14,24 @@ import WhoopWidget from "./whoop-widget";
 import PlaidWidget from "./plaid-widget";
 import AssignmentsWidget from "./assignments-widget";
 import ClockHeader from "./clock-header";
+import ChecklistWidget from "./checklist-widget";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [goals, weather, forecast] = await Promise.all([
+  const [goals, weather, forecast, checklistItems] = await Promise.all([
     sql`SELECT * FROM goals ORDER BY created_at DESC` as unknown as Promise<
       Goal[]
     >,
     getWeather(),
     getForecast(),
+    getChecklistItems(),
+  ]);
+
+  const today = todayKey();
+  const [completedIds, weekPercent] = await Promise.all([
+    getCompletedIdsForDay(today),
+    getWeekPercent(checklistItems.length, weekStartKey(today), today),
   ]);
 
   const nowIso = new Date().toISOString();
@@ -36,8 +51,15 @@ export default async function Home() {
             daily={forecast?.daily ?? null}
           />
         </div>
-        <div className="sm:w-80 shrink-0">
-          <GoalsBoard initialGoals={goals} />
+        <div className="sm:w-80 shrink-0 flex flex-col gap-4">
+          <ChecklistWidget
+            items={checklistItems}
+            completedIds={completedIds}
+            weekPercent={weekPercent}
+          />
+          <div className="flex-1 min-h-0">
+            <GoalsBoard initialGoals={goals} />
+          </div>
         </div>
       </div>
 

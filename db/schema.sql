@@ -48,3 +48,27 @@ CREATE TABLE IF NOT EXISTS plaid_items (
 
 ALTER TABLE plaid_items ADD COLUMN IF NOT EXISTS cached_accounts JSONB;
 ALTER TABLE plaid_items ADD COLUMN IF NOT EXISTS cached_at TIMESTAMPTZ;
+
+-- Daily Checklist: a fixed list of daily activities. checklist_completions
+-- holds one row per item per day it was checked off, so the list resets
+-- visually every day while still keeping history for the weekly percentage.
+CREATE TABLE IF NOT EXISTS checklist_items (
+  id SERIAL PRIMARY KEY,
+  text TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+INSERT INTO checklist_items (text, sort_order)
+SELECT * FROM (VALUES
+  ('Go to Gym', 0),
+  ('Stretch', 1),
+  ('Take Creatine', 2),
+  ('10K+ Steps', 3)
+) AS seed(text, sort_order)
+WHERE NOT EXISTS (SELECT 1 FROM checklist_items);
+
+CREATE TABLE IF NOT EXISTS checklist_completions (
+  item_id INTEGER NOT NULL REFERENCES checklist_items(id) ON DELETE CASCADE,
+  day DATE NOT NULL,
+  PRIMARY KEY (item_id, day)
+);
