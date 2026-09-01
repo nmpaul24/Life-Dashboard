@@ -61,20 +61,20 @@ export default function GoalsBoard({ initialGoals }: { initialGoals: Goal[] }) {
       {goals.length === 0 && (
         <p className="text-sm text-white/30">No to-dos yet.</p>
       )}
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col gap-1.5">
         {goals.map((goal) => (
           <li
             key={goal.id}
-            className="flex items-center gap-3 rounded-xl bg-white/[0.03] border border-white/[0.06] px-3 py-2.5"
+            className="flex items-center gap-2 rounded-lg bg-white/[0.03] border border-white/[0.06] px-2.5 py-1.5"
           >
             <input
               type="checkbox"
               checked={goal.completed}
               onChange={() => toggleGoal(goal.id)}
-              className="accent-violet-500 h-4 w-4"
+              className="accent-violet-500 h-3.5 w-3.5"
             />
             <span
-              className={`flex-1 ${
+              className={`flex-1 text-sm ${
                 goal.completed ? "line-through text-white/30" : "text-white/90"
               }`}
             >
@@ -93,7 +93,7 @@ export default function GoalsBoard({ initialGoals }: { initialGoals: Goal[] }) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="w-4 h-4"
+                className="w-3.5 h-3.5"
               >
                 <path d="M3 6h18" />
                 <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
