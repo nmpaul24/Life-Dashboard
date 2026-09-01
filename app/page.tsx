@@ -51,7 +51,7 @@ export default async function Home() {
             daily={forecast?.daily ?? null}
           />
         </div>
-        <div className="sm:w-80 shrink-0 flex flex-col gap-4">
+        <div className="sm:w-80 shrink-0 flex flex-col gap-3">
           <ChecklistWidget
             items={checklistItems}
             completedIds={completedIds}

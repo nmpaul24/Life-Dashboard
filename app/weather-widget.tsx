@@ -11,7 +11,12 @@ export default function WeatherWidget({
   daily: DailyForecast[] | null;
 }) {
   return (
-    <Card title="Weather" accentColor="bg-sky-400" glowRgb="56,189,248">
+    <Card
+      title="Weather"
+      accentColor="bg-sky-400"
+      glowRgb="56,189,248"
+      className="h-full"
+    >
       <div className="flex flex-col gap-3">
         {!weather && (
           <p className="text-sm text-white/40">Could not load weather.</p>

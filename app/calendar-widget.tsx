@@ -10,7 +10,12 @@ export default async function CalendarWidget({ today }: { today: string }) {
 
   if (!connected) {
     return (
-      <Card title="Calendar" accentColor="bg-fuchsia-400" glowRgb="232,121,249">
+      <Card
+        title="Calendar"
+        accentColor="bg-fuchsia-400"
+        glowRgb="232,121,249"
+        className="h-full"
+      >
         <a
           href="/api/auth/google"
           className="text-xs px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-white/70 border border-white/10 transition-colors w-fit"
@@ -33,6 +38,7 @@ export default async function CalendarWidget({ today }: { today: string }) {
       title="Calendar"
       accentColor="bg-fuchsia-400"
       glowRgb="232,121,249"
+      className="h-full"
       action={<AddEventButton />}
     >
       <CalendarBoard initialEvents={events} today={today} />

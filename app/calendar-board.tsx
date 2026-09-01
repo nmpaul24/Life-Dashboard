@@ -197,7 +197,7 @@ export default function CalendarBoard({
             <button
               key={key}
               onClick={() => setSelectedDay(key)}
-              className={`min-h-[220px] flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 border transition-colors ${
+              className={`min-h-[140px] flex flex-col items-center gap-1.5 rounded-xl px-1 py-2 border transition-colors ${
                 isToday
                   ? "bg-fuchsia-400/10 border-fuchsia-400/30"
                   : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"

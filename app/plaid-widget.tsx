@@ -11,6 +11,7 @@ export default async function PlaidWidget() {
       title="Investments"
       accentColor="bg-amber-400"
       glowRgb="251,191,36"
+      className="h-full"
       action={<ConnectAccountButton />}
     >
       {connected && (!balances || balances.length === 0) && (

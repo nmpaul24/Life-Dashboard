@@ -5,17 +5,19 @@ export function Card({
   accentColor = "bg-white/30",
   glowRgb = "255,255,255",
   action,
+  className = "",
   children,
 }: {
   title: string;
   accentColor?: string;
   glowRgb?: string;
   action?: ReactNode;
+  className?: string;
   children: ReactNode;
 }) {
   return (
     <div
-      className="min-w-0 h-full rounded-2xl border p-5 flex flex-col gap-4 shadow-[0_8px_30px_rgba(0,0,0,0.4)]"
+      className={`min-w-0 rounded-2xl border p-4 flex flex-col gap-3 shadow-[0_8px_30px_rgba(0,0,0,0.4)] ${className}`}
       style={{
         background: `radial-gradient(130% 110% at 0% 0%, rgba(${glowRgb},0.32) 0%, rgba(${glowRgb},0.08) 35%, rgba(255,255,255,0.02) 75%)`,
         borderColor: `rgba(${glowRgb},0.25)`,

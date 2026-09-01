@@ -48,6 +48,7 @@ export default function GoalsBoard({ initialGoals }: { initialGoals: Goal[] }) {
       title="To-Do List"
       accentColor="bg-violet-400"
       glowRgb="167,139,250"
+      className="h-full"
       action={
         <button
           onClick={() => setAddOpen(true)}
