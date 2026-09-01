@@ -5,7 +5,8 @@ Take Creatine, 10K+ Steps) that resets each day, a Google Calendar
 connection (two-way — view real events and add new ones from the
 dashboard), a current-weather widget for Minneapolis, MN, a WHOOP
 connection for recovery/sleep/strain data, and a Plaid connection for
-linked investment account balances (e.g. Fidelity, SoFi).
+linked investment account balances (e.g. Fidelity, SoFi) with a daily
+history graph of the Roth IRA and brokerage balances.
 
 Stack: Next.js (App Router) + TypeScript, Tailwind CSS, Postgres via Neon,
 OpenWeatherMap for weather, WHOOP OAuth, Plaid for linked accounts, Google
@@ -184,6 +185,8 @@ app/
   weather-widget.tsx                 - presentational weather card
   whoop-widget.tsx                    - connect button, or latest recovery/sleep/strain
   plaid-widget.tsx                    - connect button + each linked account's balance
+  investment-chart-widget.tsx          - server wrapper: fetches Roth IRA/brokerage balance history
+  investment-chart.tsx                 - client component: the inline-SVG line chart + hover tooltip
   connect-account-button.tsx          - client component: loads Plaid Link, handles the flow
   goals-board.tsx                     - To-Do List: single list, add via popup, check off/delete
   checklist-widget.tsx                 - Daily Checklist: fixed items, checks off/resets daily
@@ -207,12 +210,14 @@ app/
 lib/db.ts                            - Postgres client (Neon)
 lib/weather.ts                       - OpenWeatherMap fetch for Minneapolis, MN
 lib/whoop.ts                         - WHOOP token storage/refresh + recovery/sleep/strain fetches
-lib/plaid.ts                         - Plaid Item storage (multiple institutions) + balance fetch
+lib/plaid.ts                         - Plaid Item storage (multiple institutions) + balance fetch,
+                                         records a daily Roth IRA/brokerage balance snapshot
 lib/google-calendar.ts               - Google token storage/refresh + list/create/delete events
 lib/checklist.ts                     - checklist items/completions storage
 db/schema.sql                        - table definitions (goals, whoop_tokens, plaid_items,
                                          google_calendar_tokens, checklist_items,
-                                         checklist_completions; `events` kept but unused)
+                                         checklist_completions, investment_balance_history;
+                                         `events` kept but unused)
 ```
 
 ## Out of scope for this pass

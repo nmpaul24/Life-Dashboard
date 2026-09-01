@@ -51,7 +51,7 @@ ALTER TABLE plaid_items ADD COLUMN IF NOT EXISTS cached_at TIMESTAMPTZ;
 
 -- Daily Checklist: a fixed list of daily activities. checklist_completions
 -- holds one row per item per day it was checked off, so the list resets
--- visually every day while still keeping history for the weekly percentage.
+-- visually every day.
 CREATE TABLE IF NOT EXISTS checklist_items (
   id SERIAL PRIMARY KEY,
   text TEXT NOT NULL,
@@ -71,4 +71,17 @@ CREATE TABLE IF NOT EXISTS checklist_completions (
   item_id INTEGER NOT NULL REFERENCES checklist_items(id) ON DELETE CASCADE,
   day DATE NOT NULL,
   PRIMARY KEY (item_id, day)
+);
+
+-- One row per tracked investment account per day, so the Investments card
+-- can graph balance over time. Recorded on every dashboard load from
+-- whatever balance Plaid last returned (fresh or cached) - upserting on
+-- (account_id, day) keeps one row per account per day regardless of how
+-- many times the dashboard is loaded that day.
+CREATE TABLE IF NOT EXISTS investment_balance_history (
+  account_id TEXT NOT NULL,
+  day DATE NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('roth', 'brokerage')),
+  balance NUMERIC NOT NULL,
+  PRIMARY KEY (account_id, day)
 );

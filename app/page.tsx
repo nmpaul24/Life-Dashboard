@@ -9,6 +9,7 @@ import PlaidWidget from "./plaid-widget";
 import AssignmentsWidget from "./assignments-widget";
 import ClockHeader from "./clock-header";
 import ChecklistWidget from "./checklist-widget";
+import InvestmentChartWidget from "./investment-chart-widget";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,8 @@ export default async function Home() {
           <AssignmentsWidget />
         </div>
       </div>
+
+      <InvestmentChartWidget />
     </main>
   );
 }

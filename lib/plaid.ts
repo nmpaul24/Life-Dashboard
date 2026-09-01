@@ -1,5 +1,11 @@
 import { sql } from "./db";
 
+const TIME_ZONE = "America/Chicago";
+
+function todayKey(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: TIME_ZONE });
+}
+
 function plaidBaseUrl(): string {
   const env = process.env.PLAID_ENV ?? "sandbox";
   return `https://${env}.plaid.com`;
@@ -74,14 +80,25 @@ export async function hasPlaidItems(): Promise<boolean> {
 }
 
 type RawAccount = {
+  account_id: string;
   name: string;
   official_name: string | null;
+  subtype: string | null;
   balances: {
     current: number | null;
     available: number | null;
     iso_currency_code: string | null;
   };
 };
+
+export type InvestmentCategory = "roth" | "brokerage";
+
+function categorize(account: RawAccount): InvestmentCategory | null {
+  const name = `${account.name} ${account.official_name ?? ""}`.toLowerCase();
+  if (name.includes("roth")) return "roth";
+  if (account.subtype === "brokerage") return "brokerage";
+  return null;
+}
 
 type StoredItem = {
   itemId: string;
@@ -125,12 +142,14 @@ async function cacheAccounts(itemId: string, accounts: RawAccount[]) {
 }
 
 export type PlaidAccountBalance = {
+  accountId: string;
   institutionName: string | null;
   accountName: string;
   officialName: string | null;
   currentBalance: number | null;
   availableBalance: number | null;
   currencyCode: string | null;
+  category: InvestmentCategory | null;
 };
 
 function toBalances(
@@ -138,12 +157,14 @@ function toBalances(
   accounts: RawAccount[]
 ): PlaidAccountBalance[] {
   return accounts.map((account) => ({
+    accountId: account.account_id,
     institutionName: item.institutionName,
     accountName: account.name,
     officialName: account.official_name,
     currentBalance: account.balances.current,
     availableBalance: account.balances.available,
     currencyCode: account.balances.iso_currency_code,
+    category: categorize(account),
   }));
 }
 
@@ -190,10 +211,58 @@ async function getBalancesForItem(
   return toBalances(item, accounts);
 }
 
+async function recordDailySnapshots(balances: PlaidAccountBalance[]) {
+  const day = todayKey();
+  const trackable = balances.filter(
+    (b) => b.category !== null && b.currentBalance !== null
+  );
+
+  await Promise.all(
+    trackable.map(
+      (b) => sql`
+        INSERT INTO investment_balance_history (account_id, day, category, balance)
+        VALUES (${b.accountId}, ${day}, ${b.category}, ${b.currentBalance})
+        ON CONFLICT (account_id, day) DO UPDATE SET
+          balance = EXCLUDED.balance,
+          category = EXCLUDED.category
+      `
+    )
+  );
+}
+
 export async function getAccountBalances(): Promise<PlaidAccountBalance[] | null> {
   const items = await loadAllItems();
   if (items.length === 0) return null;
 
   const results = await Promise.all(items.map(getBalancesForItem));
-  return results.flat();
+  const balances = results.flat();
+  await recordDailySnapshots(balances);
+  return balances;
+}
+
+export type InvestmentHistoryPoint = {
+  day: string;
+  roth: number | null;
+  brokerage: number | null;
+};
+
+export async function getInvestmentHistory(
+  days = 90
+): Promise<InvestmentHistoryPoint[]> {
+  const rows = (await sql`
+    SELECT day::text AS day, category, SUM(balance)::float AS balance
+    FROM investment_balance_history
+    WHERE day >= CURRENT_DATE - ${days}::int
+    GROUP BY day, category
+    ORDER BY day
+  `) as unknown as { day: string; category: InvestmentCategory; balance: number }[];
+
+  const byDay = new Map<string, InvestmentHistoryPoint>();
+  for (const row of rows) {
+    const point = byDay.get(row.day) ?? { day: row.day, roth: null, brokerage: null };
+    point[row.category] = row.balance;
+    byDay.set(row.day, point);
+  }
+
+  return Array.from(byDay.values()).sort((a, b) => a.day.localeCompare(b.day));
 }
