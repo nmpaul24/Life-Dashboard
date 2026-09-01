@@ -61,7 +61,7 @@ export default function ClockHeader({
         </p>
       </div>
       {middle}
-      <p className="text-lg text-white/60">{greeting(hour)}</p>
+      <p className="text-lg text-white/60">{greeting(hour)}, Nicholas</p>
     </div>
   );
 }
