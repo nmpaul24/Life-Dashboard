@@ -105,12 +105,14 @@ export type GoogleEvent = {
   id: string;
   title: string;
   startsAt: string;
+  endsAt: string;
 };
 
 type RawGoogleEventItem = {
   id: string;
   summary?: string;
   start: { dateTime?: string; date?: string };
+  end: { dateTime?: string; date?: string };
 };
 
 export async function listGoogleEvents(
@@ -142,6 +144,7 @@ export async function listGoogleEvents(
     id: item.id,
     title: item.summary ?? "(No title)",
     startsAt: item.start.dateTime ?? `${item.start.date}T00:00:00`,
+    endsAt: item.end.dateTime ?? `${item.end.date}T00:00:00`,
   }));
 }
 
@@ -179,6 +182,7 @@ export async function createGoogleEvent(
     id: item.id,
     title: item.summary ?? title,
     startsAt: item.start?.dateTime ?? startsAtIso,
+    endsAt: item.end?.dateTime ?? end.toISOString(),
   };
 }
 

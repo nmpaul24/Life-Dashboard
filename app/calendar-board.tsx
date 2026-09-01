@@ -7,11 +7,13 @@ export type Event = {
   id: string;
   title: string;
   startsAt: string;
+  endsAt: string;
 };
 
 const TIME_ZONE = "America/Chicago";
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const DAY_MS = 24 * 60 * 60 * 1000;
+const MINUTES_PER_DAY = 24 * 60;
 const WHEEL_THRESHOLD = 250;
 const WHEEL_COOLDOWN_MS = 500;
 
@@ -40,6 +42,18 @@ function formatEventTime(isoString: string): string {
     minute: "2-digit",
   });
   return formatted.replace(":00 ", " ");
+}
+
+function minutesSinceMidnight(isoString: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(isoString));
+  const hour = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const minute = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  return hour * 60 + minute;
 }
 
 export default function CalendarBoard({
@@ -155,7 +169,7 @@ export default function CalendarBoard({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-2 -mt-1">
+      <div className="flex items-center justify-between gap-2 shrink-0">
         <button
           onClick={() => goToWeek(weekOffset - 1)}
           aria-label="Previous week"
@@ -183,61 +197,88 @@ export default function CalendarBoard({
         </button>
       </div>
 
-      <div
-        onWheel={handleWheel}
-        className={`grid grid-cols-7 gap-1.5 transition-opacity ${loading ? "opacity-50" : ""}`}
-      >
+      <div className="grid grid-cols-7 gap-1.5 shrink-0">
         {weekDays.map((day) => {
           const key = dateKey(day);
-          const dayEvents = eventsByDay.get(key) ?? [];
           const isToday = key === todayKey;
-          const visibleEvents = dayEvents.slice(0, 2);
-          const extraCount = dayEvents.length - visibleEvents.length;
           return (
-            <button
+            <p
               key={key}
-              onClick={() => setSelectedDay(key)}
-              className={`min-h-[140px] flex flex-col items-center gap-1.5 rounded-xl px-1 py-2 border transition-colors ${
-                isToday
-                  ? "bg-fuchsia-400/10 border-fuchsia-400/30"
-                  : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
+              className={`text-center text-[10px] uppercase ${
+                isToday ? "text-fuchsia-300 font-semibold" : "text-white/40"
               }`}
             >
-              <p className="text-[10px] text-white/40 uppercase">
-                {day.toLocaleDateString("en-US", {
-                  timeZone: TIME_ZONE,
-                  weekday: "short",
-                })}
-              </p>
-              <p className="text-base font-semibold text-white">
-                {day.toLocaleDateString("en-US", {
-                  timeZone: TIME_ZONE,
-                  day: "numeric",
-                })}
-              </p>
-              <div className="flex flex-col gap-1 w-full">
-                {visibleEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    className="text-left text-[10px] leading-tight bg-fuchsia-400/15 rounded px-1 py-1 w-full"
-                  >
-                    <p className="font-semibold text-fuchsia-300 whitespace-nowrap">
-                      {formatEventTime(event.startsAt)}
-                    </p>
-                    <p className="text-fuchsia-100 whitespace-normal break-words">
-                      {event.title}
-                    </p>
-                  </div>
-                ))}
-                {extraCount > 0 && (
-                  <p className="text-[10px] text-white/40">
-                    +{extraCount} more
-                  </p>
-                )}
-              </div>
-            </button>
+              {day.toLocaleDateString("en-US", { timeZone: TIME_ZONE, weekday: "short" })}{" "}
+              {day.toLocaleDateString("en-US", { timeZone: TIME_ZONE, day: "numeric" })}
+            </p>
           );
         })}
+      </div>
+
+      <div
+        onWheel={handleWheel}
+        className={`flex-1 min-h-0 flex gap-1.5 transition-opacity ${loading ? "opacity-50" : ""}`}
+      >
+        <div className="relative w-7 shrink-0 text-[9px] text-white/30">
+          <span className="absolute -top-1.5">12A</span>
+          <span className="absolute top-1/4 -translate-y-1/2">6A</span>
+          <span className="absolute top-1/2 -translate-y-1/2">12P</span>
+          <span className="absolute top-3/4 -translate-y-1/2">6P</span>
+          <span className="absolute -bottom-1.5">12A</span>
+        </div>
+
+        <div className="grid grid-cols-7 gap-1.5 flex-1 min-w-0">
+          {weekDays.map((day) => {
+            const key = dateKey(day);
+            const dayEvents = eventsByDay.get(key) ?? [];
+            const isToday = key === todayKey;
+            return (
+              <div
+                key={key}
+                role="button"
+                tabIndex={0}
+                onClick={() => setSelectedDay(key)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") setSelectedDay(key);
+                }}
+                className={`relative rounded-xl border cursor-pointer transition-colors overflow-hidden ${
+                  isToday
+                    ? "bg-fuchsia-400/10 border-fuchsia-400/30"
+                    : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
+                }`}
+              >
+                <div className="absolute inset-x-0 top-1/4 border-t border-white/[0.06]" />
+                <div className="absolute inset-x-0 top-1/2 border-t border-white/[0.06]" />
+                <div className="absolute inset-x-0 top-3/4 border-t border-white/[0.06]" />
+
+                {dayEvents.map((event) => {
+                  const startMin = minutesSinceMidnight(event.startsAt);
+                  const rawEndMin = minutesSinceMidnight(event.endsAt);
+                  const endMin =
+                    rawEndMin > startMin ? rawEndMin : Math.min(startMin + 60, MINUTES_PER_DAY);
+                  const topPct = (startMin / MINUTES_PER_DAY) * 100;
+                  const heightPct = ((endMin - startMin) / MINUTES_PER_DAY) * 100;
+                  return (
+                    <div
+                      key={event.id}
+                      title={`${formatEventTime(event.startsAt)} ${event.title}`}
+                      style={{
+                        top: `${topPct}%`,
+                        height: `${heightPct}%`,
+                        minHeight: "9px",
+                      }}
+                      className="absolute left-0.5 right-0.5 rounded bg-fuchsia-400/25 border border-fuchsia-400/40 px-1 overflow-hidden"
+                    >
+                      <p className="text-[8px] leading-tight text-fuchsia-100 truncate">
+                        {event.title}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <Modal
