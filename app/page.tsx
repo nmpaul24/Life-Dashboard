@@ -40,7 +40,7 @@ export default async function Home() {
     <main className="w-full px-3 py-4 flex flex-col gap-4">
       <ClockHeader initialTime={nowIso} middle={<WhoopWidget />} />
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 sm:h-[380px]">
         <div className="flex-1 min-w-0">
           <CalendarWidget today={nowIso} />
         </div>

@@ -23,7 +23,7 @@ export function Card({
         borderColor: `rgba(${glowRgb},0.25)`,
       }}
     >
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-2">
           <span
             className={`h-2.5 w-2.5 rounded-full ${accentColor}`}
@@ -35,7 +35,9 @@ export function Card({
         </div>
         {action}
       </div>
-      {children}
+      <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3">
+        {children}
+      </div>
     </div>
   );
 }
