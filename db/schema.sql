@@ -6,11 +6,23 @@ CREATE TABLE IF NOT EXISTS goals (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- No longer used by the app - Calendar now reads/writes real Google
+-- Calendar events instead of this local table. Left in place rather than
+-- dropped, since dropping risks data loss for no benefit.
 CREATE TABLE IF NOT EXISTS events (
   id SERIAL PRIMARY KEY,
   title TEXT NOT NULL,
   starts_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Single-row table holding this app's one Google Calendar OAuth token set.
+CREATE TABLE IF NOT EXISTS google_calendar_tokens (
+  id BOOLEAN PRIMARY KEY DEFAULT TRUE,
+  access_token TEXT NOT NULL,
+  refresh_token TEXT,
+  expires_at TIMESTAMPTZ NOT NULL,
+  CONSTRAINT google_calendar_tokens_singleton CHECK (id)
 );
 
 -- Single-row table holding this app's one WHOOP OAuth token set.

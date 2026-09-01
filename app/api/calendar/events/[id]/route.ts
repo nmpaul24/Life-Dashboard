@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { deleteGoogleEvent } from "@/lib/google-calendar";
 
 export async function DELETE(
   request: NextRequest,
@@ -7,12 +7,12 @@ export async function DELETE(
 ) {
   const { id } = await params;
 
-  const [event] = await sql`
-    DELETE FROM events WHERE id = ${id} RETURNING *
-  `;
-
-  if (!event) {
-    return NextResponse.json({ error: "Event not found" }, { status: 404 });
+  const success = await deleteGoogleEvent(id);
+  if (!success) {
+    return NextResponse.json(
+      { error: "Failed to delete event" },
+      { status: 502 }
+    );
   }
   return NextResponse.json({ success: true });
 }

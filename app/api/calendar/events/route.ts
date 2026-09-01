@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql } from "@/lib/db";
-
-export async function GET() {
-  const events = await sql`
-    SELECT * FROM events ORDER BY starts_at ASC
-  `;
-  return NextResponse.json(events);
-}
+import { createGoogleEvent } from "@/lib/google-calendar";
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -23,10 +16,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const [event] = await sql`
-    INSERT INTO events (title, starts_at)
-    VALUES (${title}, ${new Date(startsAt).toISOString()})
-    RETURNING *
-  `;
+  const event = await createGoogleEvent(title, new Date(startsAt).toISOString());
+  if (!event) {
+    return NextResponse.json(
+      { error: "Failed to create event" },
+      { status: 502 }
+    );
+  }
   return NextResponse.json(event, { status: 201 });
 }

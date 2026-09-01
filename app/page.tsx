@@ -1,7 +1,7 @@
 import { sql } from "@/lib/db";
 import { getWeather, getForecast } from "@/lib/weather";
 import GoalsBoard, { type Goal } from "./goals-board";
-import CalendarWidget, { type Event } from "./calendar-widget";
+import CalendarWidget from "./calendar-widget";
 import WeatherWidget from "./weather-widget";
 import WhoopWidget from "./whoop-widget";
 import PlaidWidget from "./plaid-widget";
@@ -11,12 +11,9 @@ import ClockHeader from "./clock-header";
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const [goals, events, weather, forecast] = await Promise.all([
+  const [goals, weather, forecast] = await Promise.all([
     sql`SELECT * FROM goals ORDER BY created_at DESC` as unknown as Promise<
       Goal[]
-    >,
-    sql`SELECT * FROM events ORDER BY starts_at ASC` as unknown as Promise<
-      Event[]
     >,
     getWeather(),
     getForecast(),
@@ -30,7 +27,7 @@ export default async function Home() {
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1 min-w-0">
-          <CalendarWidget initialEvents={events} today={nowIso} />
+          <CalendarWidget today={nowIso} />
         </div>
         <div className="sm:w-72 shrink-0">
           <WeatherWidget
