@@ -33,6 +33,15 @@ function getWeekDays(referenceDate: Date): Date[] {
   return Array.from({ length: 7 }, (_, i) => new Date(sunday.getTime() + i * DAY_MS));
 }
 
+function formatEventTime(isoString: string): string {
+  const formatted = new Date(isoString).toLocaleTimeString("en-US", {
+    timeZone: TIME_ZONE,
+    hour: "numeric",
+    minute: "2-digit",
+  });
+  return formatted.replace(":00 ", " ");
+}
+
 export default function CalendarWidget({
   initialEvents,
   today,
@@ -56,6 +65,9 @@ export default function CalendarWidget({
     const list = eventsByDay.get(key) ?? [];
     list.push(event);
     eventsByDay.set(key, list);
+  }
+  for (const list of eventsByDay.values()) {
+    list.sort((a, b) => a.starts_at.localeCompare(b.starts_at));
   }
 
   async function addEvent(e: React.FormEvent) {
@@ -119,7 +131,7 @@ export default function CalendarWidget({
             <button
               key={key}
               onClick={() => setSelectedDay(key)}
-              className={`min-h-[190px] flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 border transition-colors ${
+              className={`min-h-[220px] flex flex-col items-center gap-1.5 rounded-xl px-1 py-3 border transition-colors ${
                 isToday
                   ? "bg-fuchsia-400/10 border-fuchsia-400/30"
                   : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
@@ -139,12 +151,17 @@ export default function CalendarWidget({
               </p>
               <div className="flex flex-col gap-1 w-full">
                 {visibleEvents.map((event) => (
-                  <p
+                  <div
                     key={event.id}
-                    className="text-[10px] leading-tight text-fuchsia-200 bg-fuchsia-400/15 rounded px-1 py-1 whitespace-normal break-words w-full"
+                    className="text-left text-[10px] leading-tight bg-fuchsia-400/15 rounded px-1 py-1 w-full"
                   >
-                    {event.title}
-                  </p>
+                    <p className="font-semibold text-fuchsia-300 whitespace-nowrap">
+                      {formatEventTime(event.starts_at)}
+                    </p>
+                    <p className="text-fuchsia-100 whitespace-normal break-words">
+                      {event.title}
+                    </p>
+                  </div>
                 ))}
                 {extraCount > 0 && (
                   <p className="text-[10px] text-white/40">
@@ -198,14 +215,10 @@ export default function CalendarWidget({
                 className="flex items-center gap-3 rounded-xl bg-white/[0.03] border border-white/[0.06] px-3 py-2.5"
               >
                 <div className="flex-1">
-                  <p className="text-white/90">{event.title}</p>
-                  <p className="text-xs text-white/40">
-                    {new Date(event.starts_at).toLocaleTimeString("en-US", {
-                      timeZone: TIME_ZONE,
-                      hour: "numeric",
-                      minute: "2-digit",
-                    })}
+                  <p className="text-xs text-fuchsia-300 font-medium">
+                    {formatEventTime(event.starts_at)}
                   </p>
+                  <p className="text-white/90">{event.title}</p>
                 </div>
                 <button
                   onClick={() => deleteEvent(event.id)}
