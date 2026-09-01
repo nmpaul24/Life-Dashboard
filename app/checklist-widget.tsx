@@ -7,14 +7,11 @@ import type { ChecklistItem } from "@/lib/checklist";
 export default function ChecklistWidget({
   items,
   completedIds,
-  weekPercent,
 }: {
   items: ChecklistItem[];
   completedIds: number[];
-  weekPercent: number;
 }) {
   const [completed, setCompleted] = useState(() => new Set(completedIds));
-  const [percent, setPercent] = useState(weekPercent);
 
   async function toggle(id: number) {
     const res = await fetch(`/api/checklist/${id}`, { method: "PATCH" });
@@ -25,16 +22,10 @@ export default function ChecklistWidget({
       else next.delete(id);
       return next;
     });
-    setPercent(data.weekPercent);
   }
 
   return (
-    <Card
-      title="Daily Checklist"
-      accentColor="bg-emerald-400"
-      glowRgb="52,211,153"
-      action={<span className="text-xs text-white/40">{percent}% this week</span>}
-    >
+    <Card title="Daily Checklist" accentColor="bg-emerald-400" glowRgb="52,211,153">
       {items.length === 0 && (
         <p className="text-sm text-white/30">No checklist items yet.</p>
       )}

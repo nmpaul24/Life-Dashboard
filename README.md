@@ -1,12 +1,11 @@
 # Life Dashboard
 
 A personal life dashboard: a To-Do List, a daily checklist (Gym, Stretch,
-Take Creatine, 10K+ Steps) that resets each day and tracks a weekly
-completion percentage, a Google Calendar connection (two-way — view real
-events and add new ones from the dashboard), a current-weather widget for
-Minneapolis, MN, a WHOOP connection for recovery/sleep/strain data, and a
-Plaid connection for linked investment account balances (e.g. Fidelity,
-SoFi).
+Take Creatine, 10K+ Steps) that resets each day, a Google Calendar
+connection (two-way — view real events and add new ones from the
+dashboard), a current-weather widget for Minneapolis, MN, a WHOOP
+connection for recovery/sleep/strain data, and a Plaid connection for
+linked investment account balances (e.g. Fidelity, SoFi).
 
 Stack: Next.js (App Router) + TypeScript, Tailwind CSS, Postgres via Neon,
 OpenWeatherMap for weather, WHOOP OAuth, Plaid for linked accounts, Google
@@ -187,8 +186,7 @@ app/
   plaid-widget.tsx                    - connect button + each linked account's balance
   connect-account-button.tsx          - client component: loads Plaid Link, handles the flow
   goals-board.tsx                     - To-Do List: single list, add via popup, check off/delete
-  checklist-widget.tsx                 - Daily Checklist: fixed items, checks off/resets daily,
-                                          shows this week's completion percentage
+  checklist-widget.tsx                 - Daily Checklist: fixed items, checks off/resets daily
   calendar-widget.tsx                  - Calendar server wrapper: connect button, or fetches
                                           Google events and renders the board below
   calendar-board.tsx                   - Calendar client component: week grid, day popup, delete
@@ -211,7 +209,7 @@ lib/weather.ts                       - OpenWeatherMap fetch for Minneapolis, MN
 lib/whoop.ts                         - WHOOP token storage/refresh + recovery/sleep/strain fetches
 lib/plaid.ts                         - Plaid Item storage (multiple institutions) + balance fetch
 lib/google-calendar.ts               - Google token storage/refresh + list/create/delete events
-lib/checklist.ts                     - checklist items/completions, weekly percentage calculation
+lib/checklist.ts                     - checklist items/completions storage
 db/schema.sql                        - table definitions (goals, whoop_tokens, plaid_items,
                                          google_calendar_tokens, checklist_items,
                                          checklist_completions; `events` kept but unused)

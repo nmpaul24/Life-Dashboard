@@ -1,12 +1,6 @@
 import { sql } from "@/lib/db";
 import { getWeather, getForecast } from "@/lib/weather";
-import {
-  getChecklistItems,
-  getCompletedIdsForDay,
-  getWeekPercent,
-  todayKey,
-  weekStartKey,
-} from "@/lib/checklist";
+import { getChecklistItems, getCompletedIdsForDay, todayKey } from "@/lib/checklist";
 import GoalsBoard, { type Goal } from "./goals-board";
 import CalendarWidget from "./calendar-widget";
 import WeatherWidget from "./weather-widget";
@@ -28,11 +22,7 @@ export default async function Home() {
     getChecklistItems(),
   ]);
 
-  const today = todayKey();
-  const [completedIds, weekPercent] = await Promise.all([
-    getCompletedIdsForDay(today),
-    getWeekPercent(checklistItems.length, weekStartKey(today), today),
-  ]);
+  const completedIds = await getCompletedIdsForDay(todayKey());
 
   const nowIso = new Date().toISOString();
 
@@ -52,11 +42,7 @@ export default async function Home() {
           />
         </div>
         <div className="sm:w-80 shrink-0 flex flex-col gap-3">
-          <ChecklistWidget
-            items={checklistItems}
-            completedIds={completedIds}
-            weekPercent={weekPercent}
-          />
+          <ChecklistWidget items={checklistItems} completedIds={completedIds} />
           <div className="flex-1 min-h-0">
             <GoalsBoard initialGoals={goals} />
           </div>

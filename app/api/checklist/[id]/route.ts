@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getChecklistItems,
-  getWeekPercent,
-  todayKey,
-  toggleCompletion,
-  weekStartKey,
-} from "@/lib/checklist";
+import { todayKey, toggleCompletion } from "@/lib/checklist";
 
 export async function PATCH(
   request: NextRequest,
@@ -17,15 +11,7 @@ export async function PATCH(
     return NextResponse.json({ error: "invalid id" }, { status: 400 });
   }
 
-  const today = todayKey();
-  const completed = await toggleCompletion(itemId, today);
+  const completed = await toggleCompletion(itemId, todayKey());
 
-  const items = await getChecklistItems();
-  const weekPercent = await getWeekPercent(
-    items.length,
-    weekStartKey(today),
-    today
-  );
-
-  return NextResponse.json({ completed, weekPercent });
+  return NextResponse.json({ completed });
 }
