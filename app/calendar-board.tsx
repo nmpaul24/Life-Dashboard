@@ -253,7 +253,7 @@ export default function CalendarBoard({
                 onKeyDown={(e) => {
                   if (e.key === "Enter") setSelectedDay(key);
                 }}
-                className={`relative rounded-xl border cursor-pointer transition-colors overflow-hidden ${
+                className={`relative rounded-xl border cursor-pointer transition-colors ${
                   isToday
                     ? "bg-fuchsia-400/10 border-fuchsia-400/30"
                     : "bg-white/[0.03] border-white/[0.06] hover:bg-white/[0.06]"
@@ -288,9 +288,9 @@ export default function CalendarBoard({
                         height: `${heightPct}%`,
                         minHeight: "9px",
                       }}
-                      className="absolute left-0.5 right-0.5 rounded bg-fuchsia-400/25 border border-fuchsia-400/40 px-1 overflow-hidden"
+                      className="absolute left-0.5 right-0.5 z-10 rounded bg-fuchsia-400/25 border border-fuchsia-400/40 px-1"
                     >
-                      <p className="text-[8px] leading-tight text-fuchsia-100 truncate">
+                      <p className="text-[8px] leading-tight text-fuchsia-100 whitespace-normal break-words">
                         {event.title}
                       </p>
                     </div>
