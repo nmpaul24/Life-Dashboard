@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Modal from "./modal";
 
 export type Event = {
@@ -12,6 +12,8 @@ export type Event = {
 const TIME_ZONE = "America/Chicago";
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const DAY_MS = 24 * 60 * 60 * 1000;
+const WHEEL_THRESHOLD = 250;
+const WHEEL_COOLDOWN_MS = 500;
 
 function dateKey(date: Date): string {
   return date.toLocaleDateString("en-CA", { timeZone: TIME_ZONE });
@@ -48,28 +50,92 @@ export default function CalendarBoard({
   today: string;
 }) {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
-  const [referenceDate] = useState(() => new Date(today));
+  const [actualToday] = useState(() => new Date(today));
+  const [weekOffset, setWeekOffset] = useState(0);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [eventsByDay, setEventsByDay] = useState(() => {
+    const map = new Map<string, Event[]>();
+    for (const event of initialEvents) {
+      const key = dateKey(new Date(event.startsAt));
+      const list = map.get(key) ?? [];
+      list.push(event);
+      map.set(key, list);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+    }
+    return map;
+  });
+  const loadedWeeks = useRef(new Set<number>([0]));
+  const wheelAccum = useRef(0);
+  const lastWheelTrigger = useRef(0);
 
+  const referenceDate = new Date(actualToday.getTime() + weekOffset * 7 * DAY_MS);
   const weekDays = getWeekDays(referenceDate);
-  const todayKey = dateKey(referenceDate);
+  const todayKey = dateKey(actualToday);
 
-  const eventsByDay = new Map<string, Event[]>();
-  for (const event of initialEvents) {
-    const key = dateKey(new Date(event.startsAt));
-    const list = eventsByDay.get(key) ?? [];
-    list.push(event);
-    eventsByDay.set(key, list);
-  }
-  for (const list of eventsByDay.values()) {
-    list.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  async function goToWeek(offset: number) {
+    setWeekOffset(offset);
+    if (loadedWeeks.current.has(offset)) return;
+
+    const reference = new Date(actualToday.getTime() + offset * 7 * DAY_MS);
+    const days = getWeekDays(reference);
+    const start = new Date(days[0].getTime() - DAY_MS).toISOString();
+    const end = new Date(days[6].getTime() + DAY_MS).toISOString();
+
+    setLoading(true);
+    try {
+      const res = await fetch(
+        `/api/calendar/events?start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`
+      );
+      const fetched: Event[] = res.ok ? await res.json() : [];
+      setEventsByDay((prev) => {
+        const next = new Map(prev);
+        const byDay = new Map<string, Event[]>();
+        for (const event of fetched) {
+          const key = dateKey(new Date(event.startsAt));
+          const list = byDay.get(key) ?? [];
+          list.push(event);
+          byDay.set(key, list);
+        }
+        for (const day of days) {
+          const key = dateKey(day);
+          const list = byDay.get(key) ?? [];
+          list.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+          next.set(key, list);
+        }
+        return next;
+      });
+      loadedWeeks.current.add(offset);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  async function deleteEvent(id: string) {
-    setDeletingId(id);
-    await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
-    window.location.reload();
+  function handleWheel(e: React.WheelEvent) {
+    if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    const now = Date.now();
+    if (now - lastWheelTrigger.current < WHEEL_COOLDOWN_MS) return;
+
+    wheelAccum.current += e.deltaX;
+    if (Math.abs(wheelAccum.current) > WHEEL_THRESHOLD) {
+      const direction = wheelAccum.current > 0 ? 1 : -1;
+      wheelAccum.current = 0;
+      lastWheelTrigger.current = now;
+      goToWeek(weekOffset + direction);
+    }
   }
+
+  const weekLabel = `${weekDays[0].toLocaleDateString("en-US", {
+    timeZone: TIME_ZONE,
+    month: "short",
+    day: "numeric",
+  })} - ${weekDays[6].toLocaleDateString("en-US", {
+    timeZone: TIME_ZONE,
+    month: "short",
+    day: "numeric",
+  })}`;
 
   const selectedEvents = selectedDay ? eventsByDay.get(selectedDay) ?? [] : [];
   const selectedLabel = selectedDay
@@ -81,9 +147,46 @@ export default function CalendarBoard({
       })
     : "";
 
+  async function deleteEvent(id: string) {
+    setDeletingId(id);
+    await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
+    window.location.reload();
+  }
+
   return (
     <>
-      <div className="grid grid-cols-7 gap-1.5">
+      <div className="flex items-center justify-between gap-2 -mt-1">
+        <button
+          onClick={() => goToWeek(weekOffset - 1)}
+          aria-label="Previous week"
+          className="text-white/40 hover:text-white/80 transition-colors px-1"
+        >
+          ‹
+        </button>
+        <div className="flex items-center gap-2">
+          <p className="text-xs text-white/40">{weekLabel}</p>
+          {weekOffset !== 0 && (
+            <button
+              onClick={() => goToWeek(0)}
+              className="text-[10px] px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/10 text-white/60 border border-white/10 transition-colors"
+            >
+              Today
+            </button>
+          )}
+        </div>
+        <button
+          onClick={() => goToWeek(weekOffset + 1)}
+          aria-label="Next week"
+          className="text-white/40 hover:text-white/80 transition-colors px-1"
+        >
+          ›
+        </button>
+      </div>
+
+      <div
+        onWheel={handleWheel}
+        className={`grid grid-cols-7 gap-1.5 transition-opacity ${loading ? "opacity-50" : ""}`}
+      >
         {weekDays.map((day) => {
           const key = dateKey(day);
           const dayEvents = eventsByDay.get(key) ?? [];

@@ -1,5 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createGoogleEvent } from "@/lib/google-calendar";
+import { createGoogleEvent, listGoogleEvents } from "@/lib/google-calendar";
+
+export async function GET(request: NextRequest) {
+  const start = request.nextUrl.searchParams.get("start");
+  const end = request.nextUrl.searchParams.get("end");
+
+  if (!start || !end || Number.isNaN(Date.parse(start)) || Number.isNaN(Date.parse(end))) {
+    return NextResponse.json(
+      { error: "start and end must be valid dates" },
+      { status: 400 }
+    );
+  }
+
+  const events = await listGoogleEvents(start, end);
+  return NextResponse.json(events ?? []);
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.json();
